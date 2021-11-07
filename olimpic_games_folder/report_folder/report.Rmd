@@ -36,6 +36,11 @@ Type your file extension in FILE_EXTENSION:
 FILE_EXTENSION = '.csv'
 ```
 
+Construct full name to processed file:
+```{r}
+FULL_PROCESSED_FILE_NAME = paste(PATH, PROCESSED_FILE_NAME, FILE_EXTENSION, sep = "")
+```
+
 
 Here you can find the function which help us to combine all data tables with olympic athletes data in one table:
 ```{r, warning=FALSE}
@@ -128,11 +133,6 @@ Let's check for other possible strange kinds of sport like 'Art Competitions'
 ```{r}
 summary(as.factor(olimpiad_file_with_Age_na_replaced$Sport))
 ```
-We noticed possible typo 'Footba' instead of 'Football', we can correct it:
-
-```{r}
-olimpiad_file_filtered$Sport[which(olimpiad_file_filtered$Sport == 'Footba')] <- 'Football'
-```
 
 Let's check Height column for any outliers and strange behaviour
 ```{r}
@@ -218,7 +218,7 @@ Summary looks normal now, Weight basics statistics almost unchanged after NA rep
 ```{r}
 olimpiad_file_nrow_Weight_filtered <- nrow(olimpiad_file_with_Age_Height_Weight_na_replaced)
 proportion_nrow_Weight_filtered <- round(olimpiad_file_nrow_Weight_filtered / olimpiad_file_nrow * 100, 2)
-cat("After Weight column filtering,", olimpiad_file_nrow_Weight_filtered, "rows were retained,", proportion_nrow_Weight_filtered,"% from the original olympic games data table")
+cat("After Weight column filtering,", olimpiad_file_nrow_Weight_filtered, "rows were retained,", proportion_nrow_Weight_filtered, "% from the original olympic games data table")
 ```
 nrow(olimpiad_file_with_Age_Height_Weight_na_replaced)
 
@@ -414,13 +414,9 @@ cat("Difference in sports kinds number in 2002 and 2004 is", abs(sport_numbers_2
 ```{r}
 olimpiad_file_filtered_winter <- olimpiad_file_filtered  %>% 
   filter(Season == 'Winter')
-olimpiad_file_filtered_winter
-```
 
-```{r}
 olimpiad_file_filtered_summer <- olimpiad_file_filtered  %>% 
   filter(Season == 'Summer')
-olimpiad_file_filtered_summer
 ```
 
 ```{r, warning=FALSE, error = FALSE}
@@ -428,8 +424,6 @@ winter_medals <- olimpiad_file_filtered_winter %>% filter(is.na(Medal) == F) %>%
   group_by(Medal, NOC) %>% 
   summarize(n = n()) %>% 
   summarize("Medals number" = max(n), Country = paste(NOC[which(n == max(n))], collapse = ", ")) 
-#%>%
-#  arrange(Country, desc)
 winter_medals
 ```
 
@@ -437,9 +431,7 @@ winter_medals
 summer_medals <- olimpiad_file_filtered_summer %>% filter(is.na(Medal) == F) %>% 
   group_by(Medal, NOC) %>% 
   summarize(n = n()) %>% 
-  summarize("Medals number" = max(n), Country = paste(NOC[which(n == max(n))], collapse = ", ")) 
-#%>%
-#  arrange(Country, desc)
+  summarize("Medals number" = max(n), Country = paste(NOC[which(n == max(n))], collapse = ", "))
 summer_medals
 ```
 
