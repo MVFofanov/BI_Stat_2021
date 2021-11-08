@@ -3,8 +3,8 @@ title: "Project 1. Olimpic games"
 author: "Mikhail Fofanov"
 date: "24.10.2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -275,23 +275,22 @@ str(olimpiad_file_filtered)
 
 ```{r}
 
-olimpiad_file_filtered_1992_M <- olimpiad_file_filtered  %>% 
-  filter(Sex == 'M', Year == 1992)
+olimpiad_file_filtered_1992_F <- olimpiad_file_filtered  %>% 
+  filter(Sex == 'F', Year == 1992)
 
-youngest_woman_1992 <- olimpiad_file_filtered_1992_M[olimpiad_file_filtered_1992_M$Age == 
-                                min(olimpiad_file_filtered_1992_M$Age),]
+youngest_woman_1992 <- olimpiad_file_filtered_1992_F[olimpiad_file_filtered_1992_F$Age == 
+                                min(olimpiad_file_filtered_1992_F$Age),]
 
 cat('The youngest woman participating in Olympic games 1992 was', youngest_woman_1992[1,4], 'years old',  youngest_woman_1992[1,2])
 
 ```
 
 ```{r}
+olimpiad_file_filtered_1992_M <- olimpiad_file_filtered  %>% 
+  filter(Sex == 'M', Year == 1992)
 
-olimpiad_file_filtered_1992_F <- olimpiad_file_filtered  %>% 
-  filter(Sex == 'F', Year == 1992)
-
-youngest_man_1992 <- olimpiad_file_filtered_1992_F[olimpiad_file_filtered_1992_F$Age == 
-                                min(olimpiad_file_filtered_1992_F$Age),]
+youngest_man_1992 <- olimpiad_file_filtered_1992_M[olimpiad_file_filtered_1992_M$Age == 
+                                min(olimpiad_file_filtered_1992_M$Age),]
 cat('The youngest man participating in Olympic games 1992 was', youngest_man_1992[1,4], 'years old',  youngest_man_1992[1,2])
 ```
 

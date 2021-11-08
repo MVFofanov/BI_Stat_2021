@@ -559,21 +559,21 @@ str(olimpiad_file_filtered)</code></pre>
 </div>
 <div id="task-3" class="section level3">
 <h3>Task 3</h3>
-<pre class="r"><code>olimpiad_file_filtered_1992_M &lt;- olimpiad_file_filtered  %&gt;% 
-  filter(Sex == &#39;M&#39;, Year == 1992)
-
-youngest_woman_1992 &lt;- olimpiad_file_filtered_1992_M[olimpiad_file_filtered_1992_M$Age == 
-                                min(olimpiad_file_filtered_1992_M$Age),]
-
-cat(&#39;The youngest woman participating in Olympic games 1992 was&#39;, youngest_woman_1992[1,4], &#39;years old&#39;,  youngest_woman_1992[1,2])</code></pre>
-<pre><code>## The youngest woman participating in Olympic games 1992 was 11 years old Carlos Bienvenido Front Barrera</code></pre>
 <pre class="r"><code>olimpiad_file_filtered_1992_F &lt;- olimpiad_file_filtered  %&gt;% 
   filter(Sex == &#39;F&#39;, Year == 1992)
 
-youngest_man_1992 &lt;- olimpiad_file_filtered_1992_F[olimpiad_file_filtered_1992_F$Age == 
+youngest_woman_1992 &lt;- olimpiad_file_filtered_1992_F[olimpiad_file_filtered_1992_F$Age == 
                                 min(olimpiad_file_filtered_1992_F$Age),]
+
+cat(&#39;The youngest woman participating in Olympic games 1992 was&#39;, youngest_woman_1992[1,4], &#39;years old&#39;,  youngest_woman_1992[1,2])</code></pre>
+<pre><code>## The youngest woman participating in Olympic games 1992 was 12 years old Judit Kiss</code></pre>
+<pre class="r"><code>olimpiad_file_filtered_1992_M &lt;- olimpiad_file_filtered  %&gt;% 
+  filter(Sex == &#39;M&#39;, Year == 1992)
+
+youngest_man_1992 &lt;- olimpiad_file_filtered_1992_M[olimpiad_file_filtered_1992_M$Age == 
+                                min(olimpiad_file_filtered_1992_M$Age),]
 cat(&#39;The youngest man participating in Olympic games 1992 was&#39;, youngest_man_1992[1,4], &#39;years old&#39;,  youngest_man_1992[1,2])</code></pre>
-<pre><code>## The youngest man participating in Olympic games 1992 was 12 years old Judit Kiss</code></pre>
+<pre><code>## The youngest man participating in Olympic games 1992 was 11 years old Carlos Bienvenido Front Barrera</code></pre>
 </div>
 <div id="task-4" class="section level3">
 <h3>Task 4</h3>
