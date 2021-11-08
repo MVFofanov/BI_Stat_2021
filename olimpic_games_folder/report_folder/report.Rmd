@@ -1,0 +1,878 @@
+---
+title: "Project 1. Olimpic games"
+author: "Mikhail Fofanov"
+date: "24.10.2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here we can activate all essential packages for Project 1:
+```{r, warning=FALSE, message=FALSE}
+library('dplyr')
+library('ggplot2')
+```
+
+### Task 1
+
+Type your data folder path in PATH:
+
+```{r}
+PATH = 'D:/IB2021_2022/R_statistics/BI_Stat_2021/olimpic_games_folder/data_folder'
+```
+
+Type your processed file name in PROCESSED_FILE_NAME:
+
+```{r}
+PROCESSED_FILE_NAME = '/processed_data'
+```
+
+Type your file extension in FILE_EXTENSION:
+
+```{r}
+FILE_EXTENSION = '.csv'
+```
+
+Construct full name to processed file:
+```{r}
+FULL_PROCESSED_FILE_NAME = paste(PATH, PROCESSED_FILE_NAME, FILE_EXTENSION, sep = "")
+```
+
+
+Here you can find the function which help us to combine all data tables with olympic athletes data in one table:
+```{r, warning=FALSE}
+
+merge_files_from_folder <- function(path, processed_file_name, file_extension) {
+  full_processed_file_name = paste(path, processed_file_name, file_extension, sep = "")
+  if (file_extension == '.csv' &
+     full_processed_file_name %in% list.files(path=path, full.names = T) == F) {
+  processed_data <- list.files(path=path, full.names = TRUE) %>% 
+  lapply(read_csv, show_col_types = FALSE) %>% 
+  bind_rows
+  write.csv(processed_data, full_processed_file_name, row.names=FALSE)
+  } else {
+  print('Try to merge .csv files!')
+  }
+}
+
+```
+
+Let's use this function. Here we go!
+```{r, warning=FALSE}
+merge_files_from_folder(PATH, PROCESSED_FILE_NAME, FILE_EXTENSION)
+```
+
+Here we can read our combined data table and check that everything is OK with its readability
+```{r, warning=FALSE}
+olimpiad_file <- read.csv(FULL_PROCESSED_FILE_NAME)
+olimpiad_file_nrow <- nrow(olimpiad_file)
+str(olimpiad_file)
+
+```
+
+### Task 2
+Let's check for NA in each columns:
+
+```{r}
+na_check_table <- data.frame(sapply(olimpiad_file, function(x) sum(is.na(x))))
+colnames(na_check_table) <- c("NA number")
+na_check_table
+
+```
+We can notice, that most of the NAs are detected in Age, Height and Weight columns.
+
+It means, that we can not to just delete these rows without any effects unlike rows with NAs in other columns.
+
+Let's check Age column for any outliers and strange behaviour
+```{r}
+summary(olimpiad_file$Age)
+```
+
+Unexpectedly, we found a lot of sportsmen comparing in 'Art Competitions' but it is not an olympic game discipline, so we decided to disqualify them.
+
+We found also one outlier aged 240 years:
+
+```{r}
+olimpiad_file %>% filter(!is.na(Age), Age > 80, Sport != 'Art Competitions')
+```
+It was decided to replace all NA in Age, Weight and Height columns with its average values in sex specific manner
+
+Lets do it for Age column and check the summary:
+
+```{r}
+mean_F <- mean(olimpiad_file$Age[olimpiad_file$Sex == 'F'], na.rm=TRUE)
+mean_M <- mean(olimpiad_file$Age[olimpiad_file$Sex == 'M'], na.rm=TRUE)
+
+olimpiad_file_with_Age_na_replaced_F <- olimpiad_file %>%
+  filter(Sex == 'F') %>%
+  mutate(Age = ifelse(is.na(Age), mean_F, Age)) %>% 
+  filter(Age < 80, Sport != 'Art Competitions')
+
+olimpiad_file_with_Age_na_replaced_M <- olimpiad_file %>%
+  filter(Sex == 'M') %>%
+  mutate(Age = ifelse(is.na(Age), mean_M, Age)) %>% 
+  filter(Age < 80, Sport != 'Art Competitions')
+
+
+olimpiad_file_with_Age_na_replaced <-rbind(olimpiad_file_with_Age_na_replaced_F,
+                                           olimpiad_file_with_Age_na_replaced_M)
+summary(olimpiad_file_with_Age_na_replaced$Age)
+```
+Summary looks normal now, Age basics statistics almost unchanged after NA replacement
+
+```{r}
+olimpiad_file_nrow_Age_filtered <- nrow(olimpiad_file_with_Age_na_replaced)
+proportion_nrow_Age_filtered <- round(olimpiad_file_nrow_Age_filtered / olimpiad_file_nrow * 100, 2)
+cat("After Age column filtering,", olimpiad_file_nrow_Age_filtered, "rows were retained,", proportion_nrow_Age_filtered,"% from the original olympic games data table")
+```
+Let's check for other possible strange kinds of sport like 'Art Competitions'
+
+```{r}
+summary(as.factor(olimpiad_file_with_Age_na_replaced$Sport))
+```
+
+Let's check Height column for any outliers and strange behaviour
+```{r}
+summary(olimpiad_file_with_Age_na_replaced$Height)
+```
+
+We can filter max height value, because it is outlier. Real sportsmen with this height should be weighted more
+
+Wikipedia says, that real Kirsty Coventry was 176 cm height instead of 340 cm
+
+```{r}
+olimpiad_file_with_Age_na_replaced %>% filter(!is.na(Height)) %>%
+  filter(Height > 230)
+```
+
+Check for the small Height outliers:
+
+```{r}
+olimpiad_file_with_Age_na_replaced %>% filter(!is.na(Height)) %>%
+  filter(Height == min(Height))
+```
+Most of these outliers are teens, so we are not going to delete them. Let the competition continues for them!
+
+
+Lets filter Height column, replace its NAs with its average values in sex specific manner and check the summary:
+
+```{r, warning=FALSE}
+mean_F <- mean(olimpiad_file$Height[olimpiad_file$Sex == 'F'], na.rm=TRUE)
+mean_M <- mean(olimpiad_file$Height[olimpiad_file$Sex == 'M'], na.rm=TRUE)
+
+olimpiad_file_with_Age_Height_na_replaced_F <- olimpiad_file_with_Age_na_replaced %>%
+  filter(Sex == 'F') %>%
+  mutate(Height = ifelse(is.na(Height), mean_F, Height)) %>%
+  filter(Height < 230)
+
+olimpiad_file_with_Age_Height_na_replaced_M <- olimpiad_file_with_Age_na_replaced %>%
+  filter(Sex == 'M') %>%
+  mutate(Height = ifelse(is.na(Height), mean_M, Height)) %>%
+  filter(Height < 230)
+
+olimpiad_file_with_Age_Height_na_replaced <-rbind(olimpiad_file_with_Age_Height_na_replaced_F,
+                                           olimpiad_file_with_Age_Height_na_replaced_M)
+
+summary(olimpiad_file_with_Age_Height_na_replaced$Height)
+```
+Summary looks normal now, Height basics statistics almost unchanged after NA replacement
+
+```{r}
+olimpiad_file_nrow_Height_filtered <- nrow(olimpiad_file_with_Age_Height_na_replaced)
+proportion_nrow_Height_filtered <- round(olimpiad_file_nrow_Height_filtered / olimpiad_file_nrow * 100, 2)
+cat("After Height column filtering,", olimpiad_file_nrow_Height_filtered, "rows were retained,", proportion_nrow_Height_filtered,"% from the original olympic games data table")
+```
+
+Let's check Weight column for any outliers and strange behaviour
+
+```{r}
+summary(olimpiad_file_with_Age_Height_na_replaced$Weight)
+```
+Lets filter Weight column, replace its NAs with its average values in sex specific manner and check the summary:
+
+```{r, warning=FALSE}
+mean_F <- mean(olimpiad_file$Weight[olimpiad_file$Sex == 'F'], na.rm=TRUE)
+mean_M <- mean(olimpiad_file$Weight[olimpiad_file$Sex == 'M'], na.rm=TRUE)
+
+olimpiad_file_with_Age_Height_Weight_na_replaced_F <- 
+  olimpiad_file_with_Age_Height_na_replaced %>%
+  filter(Sex == 'F') %>%
+  mutate(Weight = ifelse(is.na(Weight), mean_F, Weight))
+
+olimpiad_file_with_Age_Height_Weight_na_replaced_M <-
+  olimpiad_file_with_Age_Height_na_replaced %>%
+  filter(Sex == 'M') %>%
+  mutate(Weight = ifelse(is.na(Weight), mean_M, Weight))
+
+olimpiad_file_with_Age_Height_Weight_na_replaced <-
+  rbind(olimpiad_file_with_Age_Height_Weight_na_replaced_F,
+        olimpiad_file_with_Age_Height_Weight_na_replaced_M)
+
+summary(olimpiad_file_with_Age_Height_Weight_na_replaced$Weight)
+```
+Summary looks normal now, Weight basics statistics almost unchanged after NA replacement
+
+```{r}
+olimpiad_file_nrow_Weight_filtered <- nrow(olimpiad_file_with_Age_Height_Weight_na_replaced)
+proportion_nrow_Weight_filtered <- round(olimpiad_file_nrow_Weight_filtered / olimpiad_file_nrow * 100, 2)
+cat("After Weight column filtering,", olimpiad_file_nrow_Weight_filtered, "rows were retained,", proportion_nrow_Weight_filtered, "% from the original olympic games data table")
+```
+nrow(olimpiad_file_with_Age_Height_Weight_na_replaced)
+
+```{r}
+olimpiad_file_with_Age_Height_Weight_na_replaced %>% filter(!is.na(Weight)) %>%
+  filter(Weight < 30)
+```
+
+```{r}
+na_check_table_filtered <- 
+  data.frame(sapply(olimpiad_file_with_Age_Height_Weight_na_replaced, function(x) sum(is.na(x))))
+colnames(na_check_table_filtered) <- c("NA number")
+na_check_table_filtered
+```
+```{r}
+nrow(olimpiad_file_with_Age_Height_Weight_na_replaced)
+```
+After filtering 267528 were kept from original 271115 (98.67695 %)
+
+
+```{r}
+str(olimpiad_file_with_Age_Height_Weight_na_replaced)
+```
+
+```{r}
+olimpiad_file_filtered <- olimpiad_file_with_Age_Height_Weight_na_replaced
+```
+
+
+
+```{r}
+olimpiad_file_filtered[olimpiad_file_filtered$Sex == 'G',]
+```
+
+```{r}
+olimpiad_file_filtered[olimpiad_file_filtered$Sex == 'G', ]
+```
+
+
+```{r}
+# olimpiad_file_filtered_sex_corrected <- olimpiad_file_filtered  %>%
+#   mutate(ifelse(Sex == 'G', 'M', Sex))
+
+olimpiad_file_filtered$Sex[which(olimpiad_file_filtered$Sex == 'G')] <- 'M'
+olimpiad_file_filtered$Sex <- as.factor(olimpiad_file_filtered$Sex)
+str(olimpiad_file_filtered)
+
+```
+
+
+### Task 3
+
+
+```{r}
+
+olimpiad_file_filtered_1992_F <- olimpiad_file_filtered  %>% 
+  filter(Sex == 'F', Year == 1992)
+
+youngest_woman_1992 <- olimpiad_file_filtered_1992_F[olimpiad_file_filtered_1992_F$Age == 
+                                min(olimpiad_file_filtered_1992_F$Age),]
+
+cat('The youngest woman participating in Olympic games 1992 was', youngest_woman_1992[1,4], 'years old',  youngest_woman_1992[1,2])
+
+```
+
+```{r}
+olimpiad_file_filtered_1992_M <- olimpiad_file_filtered  %>% 
+  filter(Sex == 'M', Year == 1992)
+
+youngest_man_1992 <- olimpiad_file_filtered_1992_M[olimpiad_file_filtered_1992_M$Age == 
+                                min(olimpiad_file_filtered_1992_M$Age),]
+cat('The youngest man participating in Olympic games 1992 was', youngest_man_1992[1,4], 'years old',  youngest_man_1992[1,2])
+```
+
+
+### Task 4
+
+```{r}
+mean_M <- mean(olimpiad_file_filtered$Height[olimpiad_file_filtered$Sex == 'M'])
+sd_M <- sd(olimpiad_file_filtered$Height[olimpiad_file_filtered$Sex == 'M'])
+cat("Average man's height in Olympic games is", mean_M, "with", sd_M, "standard deviation")
+```
+
+```{r}
+mean_F <- mean(olimpiad_file_filtered$Height[olimpiad_file_filtered$Sex == 'F'])
+sd_F <- sd(olimpiad_file_filtered$Height[olimpiad_file_filtered$Sex == 'F'])
+cat("Average woman's height in Olympic games is", mean_F, "with", sd_F, "standard deviation")
+```
+
+
+### Task 5
+
+```{r}
+olimpiad_file_filtered_tennis_F_2000 <- olimpiad_file_filtered  %>% 
+  filter(Sex == 'F', Year == 2000, Sport == 'Tennis')
+mean_F_2000_tennis <- round(mean(olimpiad_file_filtered_tennis_F_2000$Height), digits = 1)
+sd_F_2000_tennis <- round(sd(olimpiad_file_filtered_tennis_F_2000$Height), digits = 1)
+cat("Average height of women participating in the Tennis competition in Olympic games 2000 is", mean_F_2000_tennis, "with", sd_F_2000_tennis, "standard deviation")
+```
+
+### Task 6
+
+```{r}
+olimpiad_file_filtered_2006 <- olimpiad_file_filtered  %>% 
+  filter(Year == 2006)
+max_weight2006 <- olimpiad_file_filtered_2006[olimpiad_file_filtered_2006$Weight == max(olimpiad_file_filtered_2006$Weight),]
+cat("The most heavyweight athlete of Olympic games 2006 is", max_weight2006[1, 2], "weighing", max_weight2006[1, 5], "kg and participating in the", max_weight2006[1, 13],"competition")
+```
+
+### Task 7
+
+
+```{r}
+olimpiad_file_filtered_1980_2010_F <- olimpiad_file_filtered  %>% 
+  filter(Year >= 1980, Year <= 2010, Sex == 'F')
+gold_medals_number <- length(olimpiad_file_filtered_1980_2010_F$Medal[which(olimpiad_file_filtered_1980_2010_F$Medal == 'Gold')])
+cat("Women won", gold_medals_number, "gold medals from 1980 to 2010")
+```
+
+
+### Task 8
+
+```{r}
+olimpiad_file_filtered_John_Aalberg <- olimpiad_file_filtered  %>% 
+  filter(Name == 'John Aalberg')
+times <- length(unique(olimpiad_file_filtered_John_Aalberg$Year))
+cat("John Aalberg participated", times, "times in Olympic games")
+```
+
+### Task 9
+
+```{r}
+olimpiad_file_filtered_2008 <- olimpiad_file_filtered  %>% 
+  filter(Year == 2008)
+athlets_2008_number <- length(unique(olimpiad_file_filtered_2008$Name))
+
+olimpiad_file_filtered_2008_15_25 <- olimpiad_file_filtered_2008  %>% 
+  filter(Age >= 15, Age < 25)
+athlets_2008_number_15_25 <- length(unique(olimpiad_file_filtered_2008_15_25$Name))
+proportion_15_25 <- round(athlets_2008_number_15_25 / athlets_2008_number * 100, 2)
+
+olimpiad_file_filtered_2008_25_35 <- olimpiad_file_filtered_2008  %>% 
+  filter(Age >= 25, Age < 35)
+athlets_2008_number_25_35 <- length(unique(olimpiad_file_filtered_2008_25_35$Name))
+proportion_25_35 <- round(athlets_2008_number_25_35 / athlets_2008_number * 100, 2)
+
+olimpiad_file_filtered_2008_35_45 <- olimpiad_file_filtered_2008  %>% 
+  filter(Age >= 35, Age < 45)
+athlets_2008_number_35_45 <- length(unique(olimpiad_file_filtered_2008_35_45$Name))
+proportion_35_45 <- round(athlets_2008_number_35_45 / athlets_2008_number * 100, 2)
+
+olimpiad_file_filtered_2008_45_55 <- olimpiad_file_filtered_2008  %>% 
+  filter(Age >= 45, Age < 55)
+athlets_2008_number_45_55 <- length(unique(olimpiad_file_filtered_2008_45_55$Name))
+proportion_45_55 <- round(athlets_2008_number_45_55 / athlets_2008_number * 100, 2)
+
+athlets_2008_number_15_55 <- athlets_2008_number_15_25 + athlets_2008_number_25_35 +
+  athlets_2008_number_35_45 + athlets_2008_number_45_55
+proportion_15_55 <- round(athlets_2008_number_15_55 / athlets_2008_number * 100, 2)
+ 
+
+cat("Total athlete number in Olympic games 2008 was", athlets_2008_number, "athletes \n")
+cat("In the age group from 15 to 24 years, there were", athlets_2008_number_15_25, "athletes", proportion_15_25,"% from total athlete number in Olympic games 2008 \n")
+cat("In the age group from 25 to 34 years, there were", athlets_2008_number_25_35, "athletes", proportion_25_35,"% from total athlete number in Olympic games 2008 \n")
+cat("In the age group from 35 to 44 years, there were", athlets_2008_number_35_45, "athletes", proportion_35_45,"% from total athlete number in Olympic games 2008 \n")
+cat("In the age group from 45 to 54 years, there were", athlets_2008_number_45_55, "athletes", proportion_45_55,"% from total athlete number in Olympic games 2008 \n")
+cat("In the age group from 15 to 54 years, there were", athlets_2008_number_15_55, "athletes", proportion_15_55,"% from total athlete number in Olympic games 2008 \n")
+
+```
+
+### Task 10
+
+```{r}
+olimpiad_file_filtered_2002 <- olimpiad_file_filtered  %>% 
+  filter(Year == 2002)
+
+olimpiad_file_filtered_1994 <- olimpiad_file_filtered  %>% 
+  filter(Year == 1994)
+
+sport_numbers_2002 <- length(unique(olimpiad_file_filtered_2002$Sport))
+sport_numbers_1994 <- length(unique(olimpiad_file_filtered_1994$Sport))
+
+cat("Kinds of sports number changed  from", sport_numbers_1994, "in 1994 to", sport_numbers_2002,"in 2002\n")
+cat("Difference in sports kinds number in 2002 and 2004 is", abs(sport_numbers_2002 -
+                                                                      sport_numbers_1994),
+    "novel sports disciplines")
+```
+
+### Task 11
+
+
+```{r}
+olimpiad_file_filtered_winter <- olimpiad_file_filtered  %>% 
+  filter(Season == 'Winter')
+
+olimpiad_file_filtered_summer <- olimpiad_file_filtered  %>% 
+  filter(Season == 'Summer')
+```
+
+```{r, warning=FALSE, error = FALSE}
+winter_medals <- olimpiad_file_filtered_winter %>% filter(is.na(Medal) == F) %>% 
+  group_by(Medal, NOC) %>% 
+  summarize(n = n()) %>% 
+  summarize("Medals number" = max(n), Country = paste(NOC[which(n == max(n))], collapse = ", ")) 
+winter_medals
+```
+
+```{r, warning=FALSE, error = FALSE}
+summer_medals <- olimpiad_file_filtered_summer %>% filter(is.na(Medal) == F) %>% 
+  group_by(Medal, NOC) %>% 
+  summarize(n = n()) %>% 
+  summarize("Medals number" = max(n), Country = paste(NOC[which(n == max(n))], collapse = ", "))
+summer_medals
+```
+
+
+
+### Task 12
+
+```{r}
+mean_Height <- mean(olimpiad_file_filtered$Height)
+sd_Height <- sd(olimpiad_file_filtered$Height)
+olimpiad_file_filtered$Height_z_scores <- apply(olimpiad_file_filtered['Height'], 1, function(x) (x-mean_Height)/sd_Height)
+cat("Novel variable 'Height_z_scores' was created. Here, you can see its basic statistics:")
+summary(olimpiad_file_filtered$Height_z_scores)
+```
+
+
+### Task 13
+
+```{r}
+min_Height <- min(olimpiad_file_filtered$Height)
+max_Height <- max(olimpiad_file_filtered$Height)
+olimpiad_file_filtered$Height_min_max_scaled <- apply(olimpiad_file_filtered['Height'], 1, function(x) (x - min_Height) / (max_Height - min_Height))
+cat("Novel variable 'Height_min_max_scaled' was created. Here, you can see its basic statistics:")
+summary(olimpiad_file_filtered$Height_min_max_scaled)
+```
+
+
+
+### Task 14
+
+We can not use shapiro.test in R because it is only adapted up to 5000 observations, but we can apply Central Limit Theorem to our huge dataset and consider it normally distributed.
+
+However, it is necessary to check its distribution one more time:
+
+Let's build Height qplot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Height_qplot <- qplot(sample = Height, data = olimpiad_file_filtered_winter, color = Sex) +
+  scale_y_continuous(name = "Height") +
+  scale_x_continuous(name = "Theoretical quantiles") +
+  labs(title = "Fig 1. Height qplot for olympic athlets (men vs women)") +
+  theme_bw()
+Height_qplot
+```
+
+
+Let's build Height density plot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Height_density <- ggplot(olimpiad_file_filtered_winter, aes(x = Height, fill = Sex)) +
+  geom_density(alpha = 0.4) +
+  scale_y_continuous(name = "Density") +
+  scale_x_continuous(name = "Height") +
+  labs(title = "Fig 2. Height density plot for olympic athlets (men vs women)") +
+  theme_bw()
+Height_density
+```
+
+Height qplot and density plot demonstrated Height normal distribution. 
+
+The peaks of the density plot corresponding to the average values appeared as a result of replacing a large number of NAs with the Height average value
+
+Let's build boxplot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Height_boxplot <- ggplot(olimpiad_file_filtered_winter, aes(x = Sex, y = Height, group=Sex)) +
+  geom_boxplot() + 
+  scale_x_discrete(name = "Sex") +
+  labs(title = "Fig 3. Height boxplots for olympic athlets (men vs women)") +
+  theme_bw()
+Height_boxplot
+```
+
+As height is normally distributed we can use t.test:
+
+```{r}
+t.test(x=olimpiad_file_filtered_winter$Height[olimpiad_file_filtered_winter$Sex == 'F'],
+       y=olimpiad_file_filtered_winter$Height[olimpiad_file_filtered_winter$Sex == 'M'],
+       alternative = c("two.sided"))
+```
+t = -212.55, p-value < 2.2e-16, therefore, men and women height differs statistically significantly
+
+
+Let's build Weight qplot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Weight_qplot <- qplot(sample = Weight, data = olimpiad_file_filtered_winter, color = Sex) +
+  scale_y_continuous(name = "Weight") +
+  scale_x_continuous(name = "Theoretical quantiles") +
+  labs(title = "Fig 4. Weight qplot for olympic athlets (men vs women)") +
+  theme_bw()
+Weight_qplot
+```
+
+Let's build Weight density plot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Weight_density <- ggplot(olimpiad_file_filtered_winter, aes(x = Weight, fill = Sex)) +
+  geom_density(alpha = 0.4) +
+  scale_y_continuous(name = "Density") +
+  scale_x_continuous(name = "Weight") +
+  labs(title = "Fig 5. Weight density plot for olympic athlets (men vs women)") +
+  theme_bw()
+Weight_density
+```
+
+Weight qplot and density plot demonstrated Weight normal distribution. 
+
+The peaks of the density plot corresponding to the average values appeared as a result of replacing a large number of NAs with the Weight average value
+
+Let's build Weight boxplot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Weight_boxplot <- ggplot(olimpiad_file_filtered_winter, aes(x = Sex, y = Weight, group=Sex)) +
+  geom_boxplot() + 
+  scale_x_discrete(name = "Sex") +
+  labs(title = "Fig 6. Weight boxplots for olympic athlets (men vs women)") +
+  theme_bw()
+Weight_boxplot
+```
+
+As weight is normally distributed we can use t.test:
+
+```{r}
+t.test(x=olimpiad_file_filtered_winter$Weight[olimpiad_file_filtered_winter$Sex == 'F'],
+       y=olimpiad_file_filtered_winter$Weight[olimpiad_file_filtered_winter$Sex == 'M'],
+       alternative = c("two.sided"))
+```
+
+t = -223.27, p-value < 2.2e-16, therefore, men and women weight differs statistically significantly
+
+
+Let's build Age qplot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Age_qplot <- qplot(sample = Age, data = olimpiad_file_filtered_winter, color = Sex) +
+  scale_y_continuous(name = "Age") +
+  scale_x_continuous(name = "Theoretical quantiles") +
+  labs(title = "Fig 7. Age qplot for olympic athlets (men vs women)") +
+  theme_bw()
+Age_qplot
+```
+
+Let's build Age density plot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Age_density <- ggplot(olimpiad_file_filtered_winter, aes(x = Age, fill = Sex)) +
+  geom_density(alpha = 0.4) + 
+  scale_y_continuous(name = "Density") +
+  scale_x_continuous(name = "Age") +
+  labs(title = "Fig 8. Age density plot for olympic athlets (men vs women)") +
+  theme_bw()
+Age_density
+```
+Weight qplot and density plot demonstrated Ago normal distribution. 
+
+Let's build Age boxplot for athletes participating in Winter Olympic Games in sex specific manner:
+
+```{r, warning=FALSE}
+Age_boxplot <- ggplot(olimpiad_file_filtered_winter, aes(x = Sex, y = Age, group=Sex)) +
+  geom_boxplot() + 
+  scale_x_discrete(name = "Sex") +
+  labs(title = "Fig 9. Age boxplots for olympic athlets (men vs women)") +
+  theme_bw()
+Age_boxplot
+```
+
+As ago is normally distributed we can use t.test:
+
+```{r}
+t.test(x=olimpiad_file_filtered_winter$Age[olimpiad_file_filtered_winter$Sex == 'F'],
+       y=olimpiad_file_filtered_winter$Age[olimpiad_file_filtered_winter$Sex == 'M'],
+       alternative = c("two.sided"))
+```
+t = -32.476, p-value < 2.2e-16, therefore, men and women ago differs statistically significantly
+
+
+### Task 15
+
+Let's tets the Team and Medal linkage existence using Chi-squared test:
+
+```{r, warning=FALSE, message=FALSE}
+chisq.test(olimpiad_file_filtered$Team, olimpiad_file_filtered$Medal)
+```
+We found some linkage between Team and Medal (X-squared = 5288.9, p-value < 2.2e-16).
+
+It is also supported with the fact that some countries (e.g. USA) generally receive more medals than the vast majority of other teams every Olympic Games event
+
+
+### Task 16
+
+#### Let's research if correlation between athletes Height and Weight exists
+
+```{r}
+ggplot(olimpiad_file_filtered, aes(x = Height, y = Weight)) +
+         geom_point(color="#69b3a2") +
+         geom_smooth(method=lm , color="red", size = 1) +
+         labs(title = "Fig 10. Height and weight scatter plot") +
+         theme_bw()
+```
+
+
+From these plot we can notice that some correlation between Height and Weight exists, but how strong?
+
+To test it we can use correlation test:
+
+```{r}
+cor.test(olimpiad_file_filtered$Height, olimpiad_file_filtered$Weight)
+```
+We can notice strong correlation between Height and Weight (cor = 0.7963006, p-value < 2.2e-16)
+
+
+#### Let's test the difference in features for athletes participating in Summer and Winter Olympic Games
+
+
+Let's transform Season column to factor and check the data table structure:
+
+```{r}
+olimpiad_file_filtered$Season <- as.factor(olimpiad_file_filtered$Season)
+str(olimpiad_file_filtered)
+```
+
+Let's build density plots for Height, Weight and Ago columns for athletes participating in Summer and Winter Olympic Games
+
+```{r, warning=FALSE}
+Height_density <- ggplot(olimpiad_file_filtered, aes(x = Height, fill = Season)) +
+  geom_density(alpha = 0.4) +
+  scale_y_continuous(name = "Density") +
+  scale_x_continuous(name = "Height") +
+  labs(title = "Fig 11. Height density plot for olympic athlets (Summer vs Winter)") +
+  theme_bw()
+Height_density
+```
+
+```{r, warning=FALSE}
+Weight_density <- ggplot(olimpiad_file_filtered, aes(x = Weight, fill = Season)) +
+  geom_density(alpha = 0.4) +
+  scale_y_continuous(name = "Density") +
+  scale_x_continuous(name = "Weight") +
+  labs(title = "Fig 12. Weight density plot for olympic athlets (Summer vs Winter)") +
+  theme_bw()
+Weight_density
+```
+
+```{r, warning=FALSE}
+Age_density <- ggplot(olimpiad_file_filtered, aes(x = Age, fill = Season)) +
+  geom_density(alpha = 0.4) +
+  scale_y_continuous(name = "Density") +
+  scale_x_continuous(name = "Age") +
+  labs(title = "Fig 13. Age density plot for olympic athlets (Summer vs Winter)") +
+  theme_bw()
+Age_density
+```
+
+
+Let's build boxplots for Height, Weight and Ago columns for athletes participating in Summer and Winter Olympic Games
+
+```{r}
+facet_names <- as_labeller(c(`M` = "Men", `F` = "Women"))
+boxplot_sport <- ggplot(olimpiad_file_filtered, aes(x = Season, y = Height, fill = Season, color = I("black"), size=I(.5))) +
+  geom_boxplot() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Height") + labs(title = "Fig 14. Height boxplots for olympic athlets") +
+  theme_bw()
+boxplot_sport
+```
+
+```{r}
+boxplot_sport <- ggplot(olimpiad_file_filtered, aes(x = Season, y = Weight, fill = Season, color = I("black"), size=I(.5))) +
+  geom_boxplot() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Weight") + labs(title = "Fig 15. Weight boxplots for olympic athlets") +
+  theme_bw()
+boxplot_sport
+```
+
+
+```{r}
+boxplot_sport <- ggplot(olimpiad_file_filtered, aes(x = Season, y = Age, fill = Season, color = I("black"), size=I(.5))) +
+  geom_boxplot() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Age") + labs(title = "Fig 16. Age boxplots for olympic athlets") +
+  theme_bw()
+boxplot_sport
+```
+
+
+We can notice form builded density plots and boxplots, that differences in distributions are linked only with sex (men or women) instead of season (Winter or Summer)
+
+
+#### Analysis of the most popular kinds of sport
+
+After analysis of kinds of sport presented in Summer or Winter Olympic Games we decided to take a deeper look at the most popular kinds of sport with more than 10 000 rows in our data (Gymnastics, Swimming, Athletics, Fencing, Cycling, Shooting)
+
+
+First, transform Sport column to factor and filter data:
+
+```{r}
+olimpiad_file_filtered$Sport <- as.factor(olimpiad_file_filtered$Sport)
+
+olimpiad_file_filtered_sport <- olimpiad_file_filtered %>%
+  filter(Sport %in% c('Gymnastics', 'Swimming', 'Athletics', 'Fencing', 'Cycling', 
+                    'Shooting'))
+```
+
+
+Let's build Height and Weight scatter plot for these kinds of sport:
+
+```{r}
+ggplot(olimpiad_file_filtered_sport, aes(x = Height, y = Weight)) +
+         geom_point(aes(color=Sport)) +
+         labs(title = "Fig 17. Height and weight scatter plot") +
+         theme_bw()
+```
+
+We can notice, that these points are widely distributed despite on the clustering attempts
+
+Athletics is the most widely distributed possibly because its internal division into light athletics and weightlifting
+
+Let's build Ago violin plots and boxplots
+
+```{r}
+facet_names <- as_labeller(c(`M` = "Men", `F` = "Women"))
+
+violin_sport <- ggplot(olimpiad_file_filtered_sport, aes(x = Sport, y = Age, fill = Sport, color = I("black"), size=I(.5))) +
+  geom_violin() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Age") + labs(title = "Fig 18. Age violin plots for olympic athlets") +
+  theme_bw()
+violin_sport
+```
+
+```{r}
+facet_names <- as_labeller(c(`M` = "Men", `F` = "Women"))
+
+boxplot_sport <- ggplot(olimpiad_file_filtered_sport, aes(x = Sport, y = Age, fill = Sport, color = I("black"), size=I(.5))) +
+  geom_boxplot() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Age") + labs(title = "Fig 19. Age boxplots for olympic athlets") +
+  theme_bw()
+boxplot_sport
+```
+
+We can notice the difference between Shooting and Swimming, Shooting and Gymnastics both for men and women. Women participating in Gymnastics seems to be younger in average than in Athletics, Cycling or Fencing.
+
+Making pairwise comparisons in multiple comparisons is a bad habit, but it's hard to resist the temptation.
+
+Let's test the difference between Shooting and Swimming Women athletes:
+
+```{r}
+t.test(x=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Shooting' &
+                                            olimpiad_file_filtered_sport$Sex == 'F'],
+       y=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Swimming' &
+                                            olimpiad_file_filtered_sport$Sex == 'F'],
+       alternative = c("two.sided"))
+```
+Let's test the difference between Shooting and Swimming Men athletes:
+```{r}
+t.test(x=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Shooting' &
+                                            olimpiad_file_filtered_sport$Sex == 'M'],
+       y=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Swimming' &
+                                            olimpiad_file_filtered_sport$Sex == 'M'],
+       alternative = c("two.sided"))
+```
+Let's test the difference between Shooting and Gymnastics Women athletes:
+
+```{r}
+t.test(x=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Shooting' &
+                                            olimpiad_file_filtered_sport$Sex == 'F'],
+       y=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Gymnastics' &
+                                            olimpiad_file_filtered_sport$Sex == 'F'],
+       alternative = c("two.sided"))
+```
+
+Let's test the difference between Shooting and Gymnastics Men athletes:
+
+```{r}
+t.test(x=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Shooting' &
+                                            olimpiad_file_filtered_sport$Sex == 'M'],
+       y=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Gymnastics' &
+                                            olimpiad_file_filtered_sport$Sex == 'M'],
+       alternative = c("two.sided"))
+```
+
+Let's test the difference between Fencing and Cycling Women athletes which are visually does not differ:
+
+```{r}
+t.test(x=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Fencing' &
+                                            olimpiad_file_filtered_sport$Sex == 'F'],
+       y=olimpiad_file_filtered_sport$Age[olimpiad_file_filtered_sport$Sport == 'Cycling' &
+                                            olimpiad_file_filtered_sport$Sex == 'F'],
+       alternative = c("two.sided"))
+```
+Indeed, no differences were found (t = -3.2656, p-value = 0.001105)
+
+
+We found the significant statistical difference between Shooting and Swimming, Shooting and Gymnastics both for men and women even depite on multiple comparisons and use of statistical corrections.
+
+Let's build Height boxplots
+
+```{r}
+boxplot_sport <- ggplot(olimpiad_file_filtered_sport, aes(x = Sport, y = Height, fill = Sport, color = I("black"), size=I(.5))) +
+  geom_boxplot() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Height") + labs(title = "Fig 20. Height boxplots for olympic athlets") +
+  theme_bw()
+boxplot_sport
+```
+
+We can notice that in average athletes participating in Gymnastics are smaller than in Athletics, Cycling or Fencing and athletes participating in Swimming are taller than in Gymnastics. First observation can be explained with the fact that athletes participating in Gymnastics are usually younger than others except swimmers. Possibly, for swimmers young age and higth Height are crucial features helping them to compete in Olympic Games
+
+
+Let's build Weight boxplots
+
+```{r}
+boxplot_sport <- ggplot(olimpiad_file_filtered_sport, aes(x = Sport, y = Weight, fill = Sport, color = I("black"), size=I(.5))) +
+  geom_boxplot() + 
+  facet_grid(cols = vars(Sex), labeller = facet_names) +
+  scale_fill_brewer(type = "qual", palette = 2, name = "Sport") +
+  scale_x_discrete(name = "Sport", guide = guide_axis(angle = 30)) +
+  scale_y_continuous(name = "Weight") + labs(title = "Fig 21. Weight boxplots for olympic athlets") +
+  theme_bw()
+boxplot_sport
+```
+
+We can notice that in average women athletes participating in Gymnastics are lighter in weight than in other disciplines May be can be explained with the fact that athletes participating in Gymnastics are usually younger than others except swimmers. Possibly, for gymnasts the lighter in weight the more successful in Olympic Games they can be.
+
+
+
+
+
+
