@@ -1,0 +1,485 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>pca_1</title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2022.1">
+  <style type="text/css">
+    p.p3 {margin: 0.0px 0.0px 10.0px 0.0px; line-height: 20.0px; font: 14.0px 'Helvetica Neue'; color: #262626; -webkit-text-stroke: #262626}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 18.0px; font: 13.0px Courier; color: #262626; -webkit-text-stroke: #262626; background-color: #f2f2f2}
+    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 18.0px; font: 13.0px Courier; color: #262626; -webkit-text-stroke: #262626; background-color: #ffffff}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 18.0px; font: 13.0px Courier; color: #262626; -webkit-text-stroke: #262626; background-color: #f2f2f2; min-height: 16.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 41.0px; font: 38.0px 'Helvetica Neue'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">pca_1</span></h1>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">R Markdown</span></h2>
+<h2 style="margin: 0.0px 0.0px 10.0px 0.0px; line-height: 33.0px; font: 30.0px 'Helvetica Neue'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">R Markdown</span></h2>
+<p class="p3"><span class="s1">Libraries are installed</span></p>
+<p class="p4"><span class="s1">library('readr')</span></p>
+<p class="p4"><span class="s1">library('vegan')</span></p>
+<p class="p5"><span class="s1">## Loading required package: permute</span></p>
+<p class="p5"><span class="s1">## Loading required package: lattice</span></p>
+<p class="p5"><span class="s1">## This is vegan 2.5-7</span></p>
+<p class="p3"><span class="s1">Data is loaded</span></p>
+<p class="p4"><span class="s1">table_1 = read.csv('/Users/Downloads/train.csv')</span></p>
+<p class="p4"><span class="s1">table_2 = read.csv('/Users/Downloads/unique_m.csv')</span></p>
+<p class="p6"><span class="s1"></span><br></p>
+<p class="p4"><span class="s1">data = cbind(table_1, table_2)</span></p>
+<p class="p4"><span class="s1">data$material = NULL</span></p>
+<p class="p3"><span class="s1">Data is separated to tran and test.</span></p>
+<p class="p4"><span class="s1">train = data[1:7000,]</span></p>
+<p class="p4"><span class="s1">test = data[7001:21263,]</span></p>
+<p class="p3"><span class="s1">Data is scaled</span></p>
+<p class="p4"><span class="s1">stand_train = train[,-which(colnames(train)=="critical_temp")]</span></p>
+<p class="p4"><span class="s1">stand_test = test[,-which(colnames(train)=="critical_temp")]</span></p>
+<p class="p4"><span class="s1">stand_train = scale(stand_train)</span></p>
+<p class="p4"><span class="s1">stand_test = scale(stand_test)</span></p>
+<p class="p4"><span class="s1">stand_train = as.data.frame(cbind(stand_train, train$critical_temp))</span></p>
+<p class="p4"><span class="s1">stand_train[is.na(stand_train)] = 0</span></p>
+<p class="p4"><span class="s1">stand_test = as.data.frame(cbind(stand_test, test$critical_temp))</span></p>
+<p class="p3"><span class="s1">Linear model is built</span></p>
+<p class="p4"><span class="s1">lm_for_train = lm(train$critical_temp~.,stand_train, na.rm = TRUE)</span></p>
+<p class="p5"><span class="s1">## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">  </span>extra argument 'na.rm' will be disregarded</span></p>
+<p class="p4"><span class="s1">lm_for_test = lm(test$critical_temp~.,stand_test)</span></p>
+<p class="p5"><span class="s1">## Error in lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...): 0 (non-NA) cases</span></p>
+<p class="p4"><span class="s1">summary(lm_for_train)$coefficients</span></p>
+<p class="p5"><span class="s1">## Warning in summary.lm(lm_for_train): essentially perfect fit: summary may be</span></p>
+<p class="p5"><span class="s1">## unreliable</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                                      </span>Estimate <span class="Apple-converted-space">  </span>Std. Error <span class="Apple-converted-space">      </span>t value</span></p>
+<p class="p5"><span class="s1">## (Intercept) <span class="Apple-converted-space">                    </span>-1.304465e-13 1.656105e-15 -7.876703e+01</span></p>
+<p class="p5"><span class="s1">## number_of_elements<span class="Apple-converted-space">              </span>-4.726799e-14 6.537210e-15 -7.230605e+00</span></p>
+<p class="p5"><span class="s1">## mean_atomic_mass<span class="Apple-converted-space">                </span>-5.379778e-14 1.129625e-14 -4.762446e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_atomic_mass <span class="Apple-converted-space">            </span>2.423027e-13 2.057984e-14<span class="Apple-converted-space">  </span>1.177379e+01</span></p>
+<p class="p5"><span class="s1">## gmean_atomic_mass<span class="Apple-converted-space">                </span>3.143761e-14 1.014501e-14<span class="Apple-converted-space">  </span>3.098827e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_atomic_mass <span class="Apple-converted-space">          </span>-2.219348e-13 1.960589e-14 -1.131980e+01</span></p>
+<p class="p5"><span class="s1">## entropy_atomic_mass <span class="Apple-converted-space">            </span>-8.971609e-14 1.672865e-14 -5.363022e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_atomic_mass <span class="Apple-converted-space">        </span>-5.821070e-14 8.691086e-15 -6.697747e+00</span></p>
+<p class="p5"><span class="s1">## range_atomic_mass<span class="Apple-converted-space">                </span>3.901888e-15 3.199469e-15<span class="Apple-converted-space">  </span>1.219542e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_atomic_mass <span class="Apple-converted-space">          </span>-1.384782e-14 4.173147e-15 -3.318315e+00</span></p>
+<p class="p5"><span class="s1">## std_atomic_mass <span class="Apple-converted-space">                </span>-3.633982e-15 8.412682e-15 -4.319647e-01</span></p>
+<p class="p5"><span class="s1">## wtd_std_atomic_mass <span class="Apple-converted-space">            </span>-1.158559e-13 7.406025e-15 -1.564346e+01</span></p>
+<p class="p5"><span class="s1">## mean_fie<span class="Apple-converted-space">                        </span>-1.000855e-13 4.541654e-14 -2.203722e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_fie <span class="Apple-converted-space">                    </span>1.909630e-13 9.250416e-14<span class="Apple-converted-space">  </span>2.064372e+00</span></p>
+<p class="p5"><span class="s1">## gmean_fie<span class="Apple-converted-space">                        </span>9.525997e-14 4.361891e-14<span class="Apple-converted-space">  </span>2.183914e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_fie <span class="Apple-converted-space">                  </span>-2.208632e-13 7.843115e-14 -2.816013e+00</span></p>
+<p class="p5"><span class="s1">## entropy_fie<span class="Apple-converted-space">                      </span>2.260823e-13 7.705655e-14<span class="Apple-converted-space">  </span>2.933979e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_fie <span class="Apple-converted-space">                </span>-1.179929e-13 1.432816e-14 -8.235031e+00</span></p>
+<p class="p5"><span class="s1">## range_fie<span class="Apple-converted-space">                        </span>4.626999e-15 2.788965e-15<span class="Apple-converted-space">  </span>1.659038e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_fie <span class="Apple-converted-space">                  </span>-8.745596e-14 8.631415e-15 -1.013229e+01</span></p>
+<p class="p5"><span class="s1">## std_fie<span class="Apple-converted-space">                          </span>2.606190e-14 9.764617e-15<span class="Apple-converted-space">  </span>2.669014e+00</span></p>
+<p class="p5"><span class="s1">## wtd_std_fie<span class="Apple-converted-space">                      </span>1.864541e-14 1.302497e-14<span class="Apple-converted-space">  </span>1.431513e+00</span></p>
+<p class="p5"><span class="s1">## mean_atomic_radius<span class="Apple-converted-space">              </span>-1.093516e-13 2.911393e-14 -3.755989e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_atomic_radius<span class="Apple-converted-space">          </span>-1.085248e-13 6.365235e-14 -1.704961e+00</span></p>
+<p class="p5"><span class="s1">## gmean_atomic_radius<span class="Apple-converted-space">              </span>1.303211e-13 2.897652e-14<span class="Apple-converted-space">  </span>4.497471e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_atomic_radius<span class="Apple-converted-space">          </span>4.117423e-14 6.968108e-14<span class="Apple-converted-space">  </span>5.908954e-01</span></p>
+<p class="p5"><span class="s1">## entropy_atomic_radius <span class="Apple-converted-space">          </span>-2.690377e-13 7.375770e-14 -3.647588e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_atomic_radius<span class="Apple-converted-space">        </span>5.144542e-14 9.056104e-15<span class="Apple-converted-space">  </span>5.680745e+00</span></p>
+<p class="p5"><span class="s1">## range_atomic_radius <span class="Apple-converted-space">            </span>-1.184912e-14 2.447084e-15 -4.842139e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_atomic_radius<span class="Apple-converted-space">          </span>1.286250e-14 2.693735e-15<span class="Apple-converted-space">  </span>4.774970e+00</span></p>
+<p class="p5"><span class="s1">## std_atomic_radius<span class="Apple-converted-space">                </span>3.620106e-14 1.153002e-14<span class="Apple-converted-space">  </span>3.139721e+00</span></p>
+<p class="p5"><span class="s1">## wtd_std_atomic_radius <span class="Apple-converted-space">          </span>-2.020570e-14 1.207045e-14 -1.673981e+00</span></p>
+<p class="p5"><span class="s1">## mean_Density <span class="Apple-converted-space">                    </span>2.970551e-14 7.364189e-15<span class="Apple-converted-space">  </span>4.033779e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_Density<span class="Apple-converted-space">                </span>-2.996171e-14 1.319107e-14 -2.271363e+00</span></p>
+<p class="p5"><span class="s1">## gmean_Density <span class="Apple-converted-space">                  </span>-6.599612e-15 5.534859e-15 -1.192372e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_Density<span class="Apple-converted-space">                </span>6.293913e-14 1.071996e-14<span class="Apple-converted-space">  </span>5.871208e+00</span></p>
+<p class="p5"><span class="s1">## entropy_Density<span class="Apple-converted-space">                  </span>2.110036e-14 1.355037e-14<span class="Apple-converted-space">  </span>1.557179e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_Density<span class="Apple-converted-space">              </span>5.575900e-14 6.283547e-15<span class="Apple-converted-space">  </span>8.873810e+00</span></p>
+<p class="p5"><span class="s1">## range_Density<span class="Apple-converted-space">                    </span>8.224071e-15 3.782530e-15<span class="Apple-converted-space">  </span>2.174225e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_Density<span class="Apple-converted-space">                </span>2.404208e-14 3.928540e-15<span class="Apple-converted-space">  </span>6.119852e+00</span></p>
+<p class="p5"><span class="s1">## std_Density <span class="Apple-converted-space">                    </span>-2.939411e-14 7.676178e-15 -3.829264e+00</span></p>
+<p class="p5"><span class="s1">## wtd_std_Density<span class="Apple-converted-space">                  </span>1.793239e-14 4.425989e-15<span class="Apple-converted-space">  </span>4.051612e+00</span></p>
+<p class="p5"><span class="s1">## mean_ElectronAffinity <span class="Apple-converted-space">          </span>-1.598010e-14 6.093491e-15 -2.622487e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_ElectronAffinity<span class="Apple-converted-space">        </span>2.058740e-14 1.339604e-14<span class="Apple-converted-space">  </span>1.536828e+00</span></p>
+<p class="p5"><span class="s1">## gmean_ElectronAffinity <span class="Apple-converted-space">          </span>1.635510e-14 4.875609e-15<span class="Apple-converted-space">  </span>3.354474e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_ElectronAffinity<span class="Apple-converted-space">      </span>-2.872330e-14 1.029351e-14 -2.790429e+00</span></p>
+<p class="p5"><span class="s1">## entropy_ElectronAffinity<span class="Apple-converted-space">        </span>-7.481301e-15 5.743934e-15 -1.302470e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_ElectronAffinity <span class="Apple-converted-space">    </span>1.504926e-14 6.270060e-15<span class="Apple-converted-space">  </span>2.400178e+00</span></p>
+<p class="p5"><span class="s1">## range_ElectronAffinity <span class="Apple-converted-space">          </span>2.411974e-14 4.434125e-15<span class="Apple-converted-space">  </span>5.439572e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_ElectronAffinity <span class="Apple-converted-space">      </span>1.224270e-14 6.820026e-15<span class="Apple-converted-space">  </span>1.795110e+00</span></p>
+<p class="p5"><span class="s1">## std_ElectronAffinity<span class="Apple-converted-space">            </span>-1.298562e-14 5.382889e-15 -2.412388e+00</span></p>
+<p class="p5"><span class="s1">## wtd_std_ElectronAffinity<span class="Apple-converted-space">        </span>-9.522174e-15 5.774748e-15 -1.648933e+00</span></p>
+<p class="p5"><span class="s1">## mean_FusionHeat <span class="Apple-converted-space">                </span>-4.931957e-14 1.240582e-14 -3.975518e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_FusionHeat <span class="Apple-converted-space">            </span>-1.247192e-13 3.446869e-14 -3.618333e+00</span></p>
+<p class="p5"><span class="s1">## gmean_FusionHeat <span class="Apple-converted-space">                </span>1.360645e-14 5.349193e-15<span class="Apple-converted-space">  </span>2.543645e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_FusionHeat <span class="Apple-converted-space">            </span>7.007581e-14 2.301053e-14<span class="Apple-converted-space">  </span>3.045380e+00</span></p>
+<p class="p5"><span class="s1">## entropy_FusionHeat <span class="Apple-converted-space">              </span>2.554614e-14 1.130189e-14<span class="Apple-converted-space">  </span>2.260343e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_FusionHeat<span class="Apple-converted-space">          </span>-5.049978e-14 5.620436e-15 -8.985028e+00</span></p>
+<p class="p5"><span class="s1">## range_FusionHeat <span class="Apple-converted-space">                </span>1.493787e-14 1.106832e-14<span class="Apple-converted-space">  </span>1.349606e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_FusionHeat <span class="Apple-converted-space">            </span>4.327744e-14 2.292878e-14<span class="Apple-converted-space">  </span>1.887472e+00</span></p>
+<p class="p5"><span class="s1">## std_FusionHeat <span class="Apple-converted-space">                  </span>3.341816e-14 1.691014e-14<span class="Apple-converted-space">  </span>1.976220e+00</span></p>
+<p class="p5"><span class="s1">## wtd_std_FusionHeat<span class="Apple-converted-space">              </span>-5.410812e-15 6.298142e-15 -8.591123e-01</span></p>
+<p class="p5"><span class="s1">## mean_ThermalConductivity<span class="Apple-converted-space">        </span>-3.248567e-15 4.628027e-15 -7.019335e-01</span></p>
+<p class="p5"><span class="s1">## wtd_mean_ThermalConductivity <span class="Apple-converted-space">    </span>1.565920e-15 1.297890e-14<span class="Apple-converted-space">  </span>1.206512e-01</span></p>
+<p class="p5"><span class="s1">## gmean_ThermalConductivity<span class="Apple-converted-space">        </span>6.061693e-15 4.041710e-15<span class="Apple-converted-space">  </span>1.499784e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_ThermalConductivity <span class="Apple-converted-space">  </span>-6.314371e-15 4.980440e-15 -1.267834e+00</span></p>
+<p class="p5"><span class="s1">## entropy_ThermalConductivity<span class="Apple-converted-space">      </span>8.743874e-15 6.577192e-15<span class="Apple-converted-space">  </span>1.329424e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_ThermalConductivity -2.601141e-14 4.220713e-15 -6.162799e+00</span></p>
+<p class="p5"><span class="s1">## range_ThermalConductivity<span class="Apple-converted-space">        </span>4.865884e-15 7.025872e-15<span class="Apple-converted-space">  </span>6.925666e-01</span></p>
+<p class="p5"><span class="s1">## wtd_range_ThermalConductivity <span class="Apple-converted-space">  </span>-2.959691e-14 1.244157e-14 -2.378871e+00</span></p>
+<p class="p5"><span class="s1">## std_ThermalConductivity <span class="Apple-converted-space">        </span>-5.219713e-15 8.853358e-15 -5.895743e-01</span></p>
+<p class="p5"><span class="s1">## wtd_std_ThermalConductivity <span class="Apple-converted-space">    </span>-3.450686e-14 6.534641e-15 -5.280606e+00</span></p>
+<p class="p5"><span class="s1">## mean_Valence <span class="Apple-converted-space">                    </span>5.031450e-14 2.152885e-14<span class="Apple-converted-space">  </span>2.337073e+00</span></p>
+<p class="p5"><span class="s1">## wtd_mean_Valence<span class="Apple-converted-space">                </span>-7.516609e-14 3.264122e-14 -2.302797e+00</span></p>
+<p class="p5"><span class="s1">## gmean_Valence <span class="Apple-converted-space">                  </span>-4.387419e-14 1.820844e-14 -2.409553e+00</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_Valence<span class="Apple-converted-space">                </span>7.604374e-14 2.729501e-14<span class="Apple-converted-space">  </span>2.785994e+00</span></p>
+<p class="p5"><span class="s1">## entropy_Valence<span class="Apple-converted-space">                  </span>1.021791e-13 4.495711e-14<span class="Apple-converted-space">  </span>2.272814e+00</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_Valence<span class="Apple-converted-space">              </span>8.678364e-14 1.062678e-14<span class="Apple-converted-space">  </span>8.166507e+00</span></p>
+<p class="p5"><span class="s1">## range_Valence<span class="Apple-converted-space">                    </span>8.151155e-15 4.926044e-15<span class="Apple-converted-space">  </span>1.654706e+00</span></p>
+<p class="p5"><span class="s1">## wtd_range_Valence<span class="Apple-converted-space">                </span>1.324675e-14 2.966661e-15<span class="Apple-converted-space">  </span>4.465204e+00</span></p>
+<p class="p5"><span class="s1">## std_Valence <span class="Apple-converted-space">                    </span>-1.244466e-14 1.057808e-14 -1.176457e+00</span></p>
+<p class="p5"><span class="s1">## wtd_std_Valence<span class="Apple-converted-space">                  </span>4.844634e-14 8.597284e-15<span class="Apple-converted-space">  </span>5.635075e+00</span></p>
+<p class="p5"><span class="s1">## H <span class="Apple-converted-space">                              </span>-3.268966e-15 9.094278e-16 -3.594531e+00</span></p>
+<p class="p5"><span class="s1">## Li<span class="Apple-converted-space">                              </span>-4.321360e-15 8.501799e-16 -5.082878e+00</span></p>
+<p class="p5"><span class="s1">## B <span class="Apple-converted-space">                              </span>-2.890237e-15 7.684647e-16 -3.761053e+00</span></p>
+<p class="p5"><span class="s1">## C <span class="Apple-converted-space">                              </span>-5.846367e-15 3.235946e-15 -1.806695e+00</span></p>
+<p class="p5"><span class="s1">## N<span class="Apple-converted-space">                                </span>1.108684e-15 8.525237e-16<span class="Apple-converted-space">  </span>1.300473e+00</span></p>
+<p class="p5"><span class="s1">## O <span class="Apple-converted-space">                              </span>-2.425547e-15 3.269893e-15 -7.417817e-01</span></p>
+<p class="p5"><span class="s1">## F <span class="Apple-converted-space">                              </span>-4.889741e-15 1.703976e-15 -2.869606e+00</span></p>
+<p class="p5"><span class="s1">## Na<span class="Apple-converted-space">                              </span>-3.276274e-15 1.124264e-15 -2.914150e+00</span></p>
+<p class="p5"><span class="s1">## Mg <span class="Apple-converted-space">                              </span>1.645768e-16 4.745240e-16<span class="Apple-converted-space">  </span>3.468251e-01</span></p>
+<p class="p5"><span class="s1">## Al<span class="Apple-converted-space">                              </span>-1.186208e-15 6.006139e-16 -1.974993e+00</span></p>
+<p class="p5"><span class="s1">## Si<span class="Apple-converted-space">                              </span>-2.453063e-16 4.893458e-16 -5.012943e-01</span></p>
+<p class="p5"><span class="s1">## P <span class="Apple-converted-space">                              </span>-2.170430e-15 6.116752e-16 -3.548338e+00</span></p>
+<p class="p5"><span class="s1">## S <span class="Apple-converted-space">                              </span>-6.525867e-15 7.116568e-16 -9.169964e+00</span></p>
+<p class="p5"><span class="s1">## Cl <span class="Apple-converted-space">                              </span>2.332950e-15 2.230215e-15<span class="Apple-converted-space">  </span>1.046065e+00</span></p>
+<p class="p5"><span class="s1">## K <span class="Apple-converted-space">                              </span>-2.616411e-15 1.953268e-15 -1.339505e+00</span></p>
+<p class="p5"><span class="s1">## Ca<span class="Apple-converted-space">                              </span>-6.527458e-15 2.356278e-15 -2.770241e+00</span></p>
+<p class="p5"><span class="s1">## Sc<span class="Apple-converted-space">                              </span>-6.913034e-16 4.782246e-16 -1.445562e+00</span></p>
+<p class="p5"><span class="s1">## Ti<span class="Apple-converted-space">                              </span>-1.375591e-15 6.070985e-16 -2.265845e+00</span></p>
+<p class="p5"><span class="s1">## V <span class="Apple-converted-space">                              </span>-2.085916e-15 6.078552e-16 -3.431601e+00</span></p>
+<p class="p5"><span class="s1">## Cr<span class="Apple-converted-space">                              </span>-1.694390e-15 5.669617e-16 -2.988543e+00</span></p>
+<p class="p5"><span class="s1">## Mn<span class="Apple-converted-space">                              </span>-1.929203e-15 5.214030e-16 -3.700024e+00</span></p>
+<p class="p5"><span class="s1">## Fe<span class="Apple-converted-space">                              </span>-2.965697e-16 5.377451e-16 -5.515060e-01</span></p>
+<p class="p5"><span class="s1">## Co<span class="Apple-converted-space">                              </span>-2.147690e-15 8.816534e-16 -2.435980e+00</span></p>
+<p class="p5"><span class="s1">## Ni <span class="Apple-converted-space">                              </span>9.188713e-16 6.434716e-16<span class="Apple-converted-space">  </span>1.427991e+00</span></p>
+<p class="p5"><span class="s1">## Cu <span class="Apple-converted-space">                              </span>1.521466e-14 2.839337e-15<span class="Apple-converted-space">  </span>5.358525e+00</span></p>
+<p class="p5"><span class="s1">## Zn <span class="Apple-converted-space">                              </span>4.558584e-15 6.165264e-16<span class="Apple-converted-space">  </span>7.393979e+00</span></p>
+<p class="p5"><span class="s1">## Ga<span class="Apple-converted-space">                              </span>-4.864203e-15 6.056922e-16 -8.030816e+00</span></p>
+<p class="p5"><span class="s1">## Ge <span class="Apple-converted-space">                              </span>2.982457e-16 5.328074e-16<span class="Apple-converted-space">  </span>5.597628e-01</span></p>
+<p class="p5"><span class="s1">## Se<span class="Apple-converted-space">                              </span>-1.502072e-15 4.956691e-16 -3.030394e+00</span></p>
+<p class="p5"><span class="s1">## Br<span class="Apple-converted-space">                              </span>-1.617179e-15 5.080057e-16 -3.183388e+00</span></p>
+<p class="p5"><span class="s1">## Rb <span class="Apple-converted-space">                              </span>1.847566e-16 1.721448e-15<span class="Apple-converted-space">  </span>1.073262e-01</span></p>
+<p class="p5"><span class="s1">## Sr<span class="Apple-converted-space">                              </span>-3.349003e-15 2.288816e-15 -1.463203e+00</span></p>
+<p class="p5"><span class="s1">## Y <span class="Apple-converted-space">                              </span>-5.988834e-15 1.772904e-15 -3.377980e+00</span></p>
+<p class="p5"><span class="s1">## Zr<span class="Apple-converted-space">                              </span>-9.423552e-16 4.741471e-16 -1.987474e+00</span></p>
+<p class="p5"><span class="s1">## Nb<span class="Apple-converted-space">                              </span>-6.734649e-15 7.610692e-16 -8.848931e+00</span></p>
+<p class="p5"><span class="s1">## Mo <span class="Apple-converted-space">                              </span>3.426009e-16 6.352748e-16<span class="Apple-converted-space">  </span>5.392956e-01</span></p>
+<p class="p5"><span class="s1">## Ru<span class="Apple-converted-space">                              </span>-7.406784e-15 9.218858e-16 -8.034383e+00</span></p>
+<p class="p5"><span class="s1">## Ag <span class="Apple-converted-space">                              </span>1.743634e-15 7.535906e-16<span class="Apple-converted-space">  </span>2.313769e+00</span></p>
+<p class="p5"><span class="s1">## Cd <span class="Apple-converted-space">                              </span>9.106630e-16 7.973797e-16<span class="Apple-converted-space">  </span>1.142069e+00</span></p>
+<p class="p5"><span class="s1">## In<span class="Apple-converted-space">                              </span>-3.603637e-16 5.116481e-16 -7.043195e-01</span></p>
+<p class="p5"><span class="s1">## Sn<span class="Apple-converted-space">                              </span>-1.043365e-15 4.970108e-16 -2.099280e+00</span></p>
+<p class="p5"><span class="s1">## Sb <span class="Apple-converted-space">                              </span>8.311837e-16 5.082109e-16<span class="Apple-converted-space">  </span>1.635509e+00</span></p>
+<p class="p5"><span class="s1">## Te <span class="Apple-converted-space">                              </span>3.138228e-16 4.743097e-16<span class="Apple-converted-space">  </span>6.616412e-01</span></p>
+<p class="p5"><span class="s1">## I <span class="Apple-converted-space">                              </span>-4.547128e-15 1.371731e-15 -3.314882e+00</span></p>
+<p class="p5"><span class="s1">## Cs <span class="Apple-converted-space">                              </span>2.140129e-15 8.842601e-16<span class="Apple-converted-space">  </span>2.420249e+00</span></p>
+<p class="p5"><span class="s1">## Ba<span class="Apple-converted-space">                              </span>-1.373397e-14 2.091463e-15 -6.566683e+00</span></p>
+<p class="p5"><span class="s1">## La<span class="Apple-converted-space">                              </span>-6.309298e-15 1.899974e-15 -3.320729e+00</span></p>
+<p class="p5"><span class="s1">## Ce<span class="Apple-converted-space">                              </span>-1.550804e-15 7.189729e-16 -2.156972e+00</span></p>
+<p class="p5"><span class="s1">## Pr<span class="Apple-converted-space">                              </span>-6.633215e-15 9.371231e-16 -7.078274e+00</span></p>
+<p class="p5"><span class="s1">## Nd<span class="Apple-converted-space">                              </span>-4.940660e-15 1.067224e-15 -4.629450e+00</span></p>
+<p class="p5"><span class="s1">## Sm <span class="Apple-converted-space">                              </span>4.065569e-16 6.979330e-16<span class="Apple-converted-space">  </span>5.825157e-01</span></p>
+<p class="p5"><span class="s1">## Eu <span class="Apple-converted-space">                              </span>2.132461e-16 7.537297e-16<span class="Apple-converted-space">  </span>2.829212e-01</span></p>
+<p class="p5"><span class="s1">## Gd<span class="Apple-converted-space">                              </span>-1.690369e-15 8.326068e-16 -2.030212e+00</span></p>
+<p class="p5"><span class="s1">## Tb <span class="Apple-converted-space">                              </span>2.114859e-16 5.552838e-16<span class="Apple-converted-space">  </span>3.808608e-01</span></p>
+<p class="p5"><span class="s1">## Dy<span class="Apple-converted-space">                              </span>-1.267212e-15 6.168695e-16 -2.054262e+00</span></p>
+<p class="p5"><span class="s1">## Ho <span class="Apple-converted-space">                              </span>1.796180e-15 6.781024e-16<span class="Apple-converted-space">  </span>2.648834e+00</span></p>
+<p class="p5"><span class="s1">## Er <span class="Apple-converted-space">                              </span>2.525663e-15 8.649618e-16<span class="Apple-converted-space">  </span>2.919971e+00</span></p>
+<p class="p5"><span class="s1">## Tm <span class="Apple-converted-space">                              </span>1.323609e-15 6.369717e-16<span class="Apple-converted-space">  </span>2.077972e+00</span></p>
+<p class="p5"><span class="s1">## Yb<span class="Apple-converted-space">                              </span>-1.277641e-15 7.780474e-16 -1.642112e+00</span></p>
+<p class="p5"><span class="s1">## Lu <span class="Apple-converted-space">                              </span>2.090057e-15 6.970466e-16<span class="Apple-converted-space">  </span>2.998446e+00</span></p>
+<p class="p5"><span class="s1">## Hf <span class="Apple-converted-space">                              </span>1.400802e-15 6.024829e-16<span class="Apple-converted-space">  </span>2.325049e+00</span></p>
+<p class="p5"><span class="s1">## Ta <span class="Apple-converted-space">                              </span>6.735394e-16 4.841081e-16<span class="Apple-converted-space">  </span>1.391300e+00</span></p>
+<p class="p5"><span class="s1">## W<span class="Apple-converted-space">                                </span>9.660647e-17 6.335496e-16<span class="Apple-converted-space">  </span>1.524845e-01</span></p>
+<p class="p5"><span class="s1">## Re<span class="Apple-converted-space">                              </span>-2.043002e-15 9.887587e-16 -2.066229e+00</span></p>
+<p class="p5"><span class="s1">## Pt <span class="Apple-converted-space">                              </span>3.301654e-16 4.964974e-16<span class="Apple-converted-space">  </span>6.649891e-01</span></p>
+<p class="p5"><span class="s1">## Au<span class="Apple-converted-space">                              </span>-2.352785e-15 8.021179e-16 -2.933216e+00</span></p>
+<p class="p5"><span class="s1">## Hg<span class="Apple-converted-space">                              </span>-9.509798e-16 2.140004e-15 -4.443822e-01</span></p>
+<p class="p5"><span class="s1">## Tl<span class="Apple-converted-space">                              </span>-9.493519e-15 1.669845e-15 -5.685270e+00</span></p>
+<p class="p5"><span class="s1">## Pb<span class="Apple-converted-space">                              </span>-3.504041e-15 1.016194e-15 -3.448202e+00</span></p>
+<p class="p5"><span class="s1">## Bi<span class="Apple-converted-space">                              </span>-5.573516e-15 2.051499e-15 -2.716801e+00</span></p>
+<p class="p5"><span class="s1">## V168 <span class="Apple-converted-space">                            </span>1.000000e+00 2.600008e-17<span class="Apple-converted-space">  </span>3.846142e+16</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                                    </span>Pr(&gt;|t|)</span></p>
+<p class="p5"><span class="s1">## (Intercept) <span class="Apple-converted-space">                    </span>0.000000e+00</span></p>
+<p class="p5"><span class="s1">## number_of_elements<span class="Apple-converted-space">              </span>5.330513e-13</span></p>
+<p class="p5"><span class="s1">## mean_atomic_mass<span class="Apple-converted-space">                </span>1.951955e-06</span></p>
+<p class="p5"><span class="s1">## wtd_mean_atomic_mass<span class="Apple-converted-space">            </span>1.075311e-31</span></p>
+<p class="p5"><span class="s1">## gmean_atomic_mass <span class="Apple-converted-space">              </span>1.950761e-03</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_atomic_mass <span class="Apple-converted-space">          </span>1.910457e-29</span></p>
+<p class="p5"><span class="s1">## entropy_atomic_mass <span class="Apple-converted-space">            </span>8.451821e-08</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_atomic_mass <span class="Apple-converted-space">        </span>2.284602e-11</span></p>
+<p class="p5"><span class="s1">## range_atomic_mass <span class="Apple-converted-space">              </span>2.226805e-01</span></p>
+<p class="p5"><span class="s1">## wtd_range_atomic_mass <span class="Apple-converted-space">          </span>9.103488e-04</span></p>
+<p class="p5"><span class="s1">## std_atomic_mass <span class="Apple-converted-space">                </span>6.657807e-01</span></p>
+<p class="p5"><span class="s1">## wtd_std_atomic_mass <span class="Apple-converted-space">            </span>3.171346e-54</span></p>
+<p class="p5"><span class="s1">## mean_fie<span class="Apple-converted-space">                        </span>2.757703e-02</span></p>
+<p class="p5"><span class="s1">## wtd_mean_fie<span class="Apple-converted-space">                    </span>3.902002e-02</span></p>
+<p class="p5"><span class="s1">## gmean_fie <span class="Apple-converted-space">                      </span>2.900236e-02</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_fie <span class="Apple-converted-space">                  </span>4.876270e-03</span></p>
+<p class="p5"><span class="s1">## entropy_fie <span class="Apple-converted-space">                    </span>3.357579e-03</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_fie <span class="Apple-converted-space">                </span>2.131403e-16</span></p>
+<p class="p5"><span class="s1">## range_fie <span class="Apple-converted-space">                      </span>9.715395e-02</span></p>
+<p class="p5"><span class="s1">## wtd_range_fie <span class="Apple-converted-space">                  </span>5.858183e-24</span></p>
+<p class="p5"><span class="s1">## std_fie <span class="Apple-converted-space">                        </span>7.625365e-03</span></p>
+<p class="p5"><span class="s1">## wtd_std_fie <span class="Apple-converted-space">                    </span>1.523289e-01</span></p>
+<p class="p5"><span class="s1">## mean_atomic_radius<span class="Apple-converted-space">              </span>1.740908e-04</span></p>
+<p class="p5"><span class="s1">## wtd_mean_atomic_radius<span class="Apple-converted-space">          </span>8.824701e-02</span></p>
+<p class="p5"><span class="s1">## gmean_atomic_radius <span class="Apple-converted-space">            </span>6.990074e-06</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_atomic_radius <span class="Apple-converted-space">        </span>5.546100e-01</span></p>
+<p class="p5"><span class="s1">## entropy_atomic_radius <span class="Apple-converted-space">          </span>2.666810e-04</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_atomic_radius <span class="Apple-converted-space">      </span>1.396139e-08</span></p>
+<p class="p5"><span class="s1">## range_atomic_radius <span class="Apple-converted-space">            </span>1.312675e-06</span></p>
+<p class="p5"><span class="s1">## wtd_range_atomic_radius <span class="Apple-converted-space">        </span>1.834699e-06</span></p>
+<p class="p5"><span class="s1">## std_atomic_radius <span class="Apple-converted-space">              </span>1.698281e-03</span></p>
+<p class="p5"><span class="s1">## wtd_std_atomic_radius <span class="Apple-converted-space">          </span>9.418005e-02</span></p>
+<p class="p5"><span class="s1">## mean_Density<span class="Apple-converted-space">                    </span>5.548375e-05</span></p>
+<p class="p5"><span class="s1">## wtd_mean_Density<span class="Apple-converted-space">                </span>2.315589e-02</span></p>
+<p class="p5"><span class="s1">## gmean_Density <span class="Apple-converted-space">                  </span>2.331567e-01</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_Density <span class="Apple-converted-space">              </span>4.528717e-09</span></p>
+<p class="p5"><span class="s1">## entropy_Density <span class="Apple-converted-space">                </span>1.194741e-01</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_Density <span class="Apple-converted-space">            </span>8.899667e-19</span></p>
+<p class="p5"><span class="s1">## range_Density <span class="Apple-converted-space">                  </span>2.972235e-02</span></p>
+<p class="p5"><span class="s1">## wtd_range_Density <span class="Apple-converted-space">              </span>9.883207e-10</span></p>
+<p class="p5"><span class="s1">## std_Density <span class="Apple-converted-space">                    </span>1.296745e-04</span></p>
+<p class="p5"><span class="s1">## wtd_std_Density <span class="Apple-converted-space">                </span>5.142846e-05</span></p>
+<p class="p5"><span class="s1">## mean_ElectronAffinity <span class="Apple-converted-space">          </span>8.748385e-03</span></p>
+<p class="p5"><span class="s1">## wtd_mean_ElectronAffinity <span class="Apple-converted-space">      </span>1.243817e-01</span></p>
+<p class="p5"><span class="s1">## gmean_ElectronAffinity<span class="Apple-converted-space">          </span>7.994803e-04</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_ElectronAffinity<span class="Apple-converted-space">      </span>5.278384e-03</span></p>
+<p class="p5"><span class="s1">## entropy_ElectronAffinity<span class="Apple-converted-space">        </span>1.927997e-01</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_ElectronAffinity<span class="Apple-converted-space">    </span>1.641361e-02</span></p>
+<p class="p5"><span class="s1">## range_ElectronAffinity<span class="Apple-converted-space">          </span>5.525607e-08</span></p>
+<p class="p5"><span class="s1">## wtd_range_ElectronAffinity<span class="Apple-converted-space">      </span>7.268027e-02</span></p>
+<p class="p5"><span class="s1">## std_ElectronAffinity<span class="Apple-converted-space">            </span>1.587453e-02</span></p>
+<p class="p5"><span class="s1">## wtd_std_ElectronAffinity<span class="Apple-converted-space">        </span>9.920719e-02</span></p>
+<p class="p5"><span class="s1">## mean_FusionHeat <span class="Apple-converted-space">                </span>7.094868e-05</span></p>
+<p class="p5"><span class="s1">## wtd_mean_FusionHeat <span class="Apple-converted-space">            </span>2.986442e-04</span></p>
+<p class="p5"><span class="s1">## gmean_FusionHeat<span class="Apple-converted-space">                </span>1.099203e-02</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_FusionHeat<span class="Apple-converted-space">            </span>2.332699e-03</span></p>
+<p class="p5"><span class="s1">## entropy_FusionHeat<span class="Apple-converted-space">              </span>2.383127e-02</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_FusionHeat<span class="Apple-converted-space">          </span>3.294720e-19</span></p>
+<p class="p5"><span class="s1">## range_FusionHeat<span class="Apple-converted-space">                </span>1.771870e-01</span></p>
+<p class="p5"><span class="s1">## wtd_range_FusionHeat<span class="Apple-converted-space">            </span>5.913910e-02</span></p>
+<p class="p5"><span class="s1">## std_FusionHeat<span class="Apple-converted-space">                  </span>4.816993e-02</span></p>
+<p class="p5"><span class="s1">## wtd_std_FusionHeat<span class="Apple-converted-space">              </span>3.903086e-01</span></p>
+<p class="p5"><span class="s1">## mean_ThermalConductivity<span class="Apple-converted-space">        </span>4.827445e-01</span></p>
+<p class="p5"><span class="s1">## wtd_mean_ThermalConductivity<span class="Apple-converted-space">    </span>9.039708e-01</span></p>
+<p class="p5"><span class="s1">## gmean_ThermalConductivity <span class="Apple-converted-space">      </span>1.337164e-01</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_ThermalConductivity <span class="Apple-converted-space">  </span>2.049004e-01</span></p>
+<p class="p5"><span class="s1">## entropy_ThermalConductivity <span class="Apple-converted-space">    </span>1.837526e-01</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_ThermalConductivity 7.552683e-10</span></p>
+<p class="p5"><span class="s1">## range_ThermalConductivity <span class="Apple-converted-space">      </span>4.886051e-01</span></p>
+<p class="p5"><span class="s1">## wtd_range_ThermalConductivity <span class="Apple-converted-space">  </span>1.739299e-02</span></p>
+<p class="p5"><span class="s1">## std_ThermalConductivity <span class="Apple-converted-space">        </span>5.554955e-01</span></p>
+<p class="p5"><span class="s1">## wtd_std_ThermalConductivity <span class="Apple-converted-space">    </span>1.327206e-07</span></p>
+<p class="p5"><span class="s1">## mean_Valence<span class="Apple-converted-space">                    </span>1.946405e-02</span></p>
+<p class="p5"><span class="s1">## wtd_mean_Valence<span class="Apple-converted-space">                </span>2.132013e-02</span></p>
+<p class="p5"><span class="s1">## gmean_Valence <span class="Apple-converted-space">                  </span>1.599831e-02</span></p>
+<p class="p5"><span class="s1">## wtd_gmean_Valence <span class="Apple-converted-space">              </span>5.351061e-03</span></p>
+<p class="p5"><span class="s1">## entropy_Valence <span class="Apple-converted-space">                </span>2.306826e-02</span></p>
+<p class="p5"><span class="s1">## wtd_entropy_Valence <span class="Apple-converted-space">            </span>3.748315e-16</span></p>
+<p class="p5"><span class="s1">## range_Valence <span class="Apple-converted-space">                  </span>9.802997e-02</span></p>
+<p class="p5"><span class="s1">## wtd_range_Valence <span class="Apple-converted-space">              </span>8.127566e-06</span></p>
+<p class="p5"><span class="s1">## std_Valence <span class="Apple-converted-space">                    </span>2.394534e-01</span></p>
+<p class="p5"><span class="s1">## wtd_std_Valence <span class="Apple-converted-space">                </span>1.819390e-08</span></p>
+<p class="p5"><span class="s1">## H <span class="Apple-converted-space">                              </span>3.272622e-04</span></p>
+<p class="p5"><span class="s1">## Li<span class="Apple-converted-space">                              </span>3.816148e-07</span></p>
+<p class="p5"><span class="s1">## B <span class="Apple-converted-space">                              </span>1.706105e-04</span></p>
+<p class="p5"><span class="s1">## C <span class="Apple-converted-space">                              </span>7.085379e-02</span></p>
+<p class="p5"><span class="s1">## N <span class="Apple-converted-space">                              </span>1.934827e-01</span></p>
+<p class="p5"><span class="s1">## O <span class="Apple-converted-space">                              </span>4.582451e-01</span></p>
+<p class="p5"><span class="s1">## F <span class="Apple-converted-space">                              </span>4.122419e-03</span></p>
+<p class="p5"><span class="s1">## Na<span class="Apple-converted-space">                              </span>3.578136e-03</span></p>
+<p class="p5"><span class="s1">## Mg<span class="Apple-converted-space">                              </span>7.287334e-01</span></p>
+<p class="p5"><span class="s1">## Al<span class="Apple-converted-space">                              </span>4.830910e-02</span></p>
+<p class="p5"><span class="s1">## Si<span class="Apple-converted-space">                              </span>6.161801e-01</span></p>
+<p class="p5"><span class="s1">## P <span class="Apple-converted-space">                              </span>3.902681e-04</span></p>
+<p class="p5"><span class="s1">## S <span class="Apple-converted-space">                              </span>6.149979e-20</span></p>
+<p class="p5"><span class="s1">## Cl<span class="Apple-converted-space">                              </span>2.955679e-01</span></p>
+<p class="p5"><span class="s1">## K <span class="Apple-converted-space">                              </span>1.804509e-01</span></p>
+<p class="p5"><span class="s1">## Ca<span class="Apple-converted-space">                              </span>5.616584e-03</span></p>
+<p class="p5"><span class="s1">## Sc<span class="Apple-converted-space">                              </span>1.483458e-01</span></p>
+<p class="p5"><span class="s1">## Ti<span class="Apple-converted-space">                              </span>2.349194e-02</span></p>
+<p class="p5"><span class="s1">## V <span class="Apple-converted-space">                              </span>6.035782e-04</span></p>
+<p class="p5"><span class="s1">## Cr<span class="Apple-converted-space">                              </span>2.813058e-03</span></p>
+<p class="p5"><span class="s1">## Mn<span class="Apple-converted-space">                              </span>2.172695e-04</span></p>
+<p class="p5"><span class="s1">## Fe<span class="Apple-converted-space">                              </span>5.813048e-01</span></p>
+<p class="p5"><span class="s1">## Co<span class="Apple-converted-space">                              </span>1.487685e-02</span></p>
+<p class="p5"><span class="s1">## Ni<span class="Apple-converted-space">                              </span>1.533402e-01</span></p>
+<p class="p5"><span class="s1">## Cu<span class="Apple-converted-space">                              </span>8.663961e-08</span></p>
+<p class="p5"><span class="s1">## Zn<span class="Apple-converted-space">                              </span>1.594663e-13</span></p>
+<p class="p5"><span class="s1">## Ga<span class="Apple-converted-space">                              </span>1.131256e-15</span></p>
+<p class="p5"><span class="s1">## Ge<span class="Apple-converted-space">                              </span>5.756596e-01</span></p>
+<p class="p5"><span class="s1">## Se<span class="Apple-converted-space">                              </span>2.451475e-03</span></p>
+<p class="p5"><span class="s1">## Br<span class="Apple-converted-space">                              </span>1.462142e-03</span></p>
+<p class="p5"><span class="s1">## Rb<span class="Apple-converted-space">                              </span>9.145333e-01</span></p>
+<p class="p5"><span class="s1">## Sr<span class="Apple-converted-space">                              </span>1.434576e-01</span></p>
+<p class="p5"><span class="s1">## Y <span class="Apple-converted-space">                              </span>7.342754e-04</span></p>
+<p class="p5"><span class="s1">## Zr<span class="Apple-converted-space">                              </span>4.690961e-02</span></p>
+<p class="p5"><span class="s1">## Nb<span class="Apple-converted-space">                              </span>1.109716e-18</span></p>
+<p class="p5"><span class="s1">## Mo<span class="Apple-converted-space">                              </span>5.897004e-01</span></p>
+<p class="p5"><span class="s1">## Ru<span class="Apple-converted-space">                              </span>1.099128e-15</span></p>
+<p class="p5"><span class="s1">## Ag<span class="Apple-converted-space">                              </span>2.070987e-02</span></p>
+<p class="p5"><span class="s1">## Cd<span class="Apple-converted-space">                              </span>2.534651e-01</span></p>
+<p class="p5"><span class="s1">## In<span class="Apple-converted-space">                              </span>4.812578e-01</span></p>
+<p class="p5"><span class="s1">## Sn<span class="Apple-converted-space">                              </span>3.582879e-02</span></p>
+<p class="p5"><span class="s1">## Sb<span class="Apple-converted-space">                              </span>1.019883e-01</span></p>
+<p class="p5"><span class="s1">## Te<span class="Apple-converted-space">                              </span>5.082235e-01</span></p>
+<p class="p5"><span class="s1">## I <span class="Apple-converted-space">                              </span>9.215844e-04</span></p>
+<p class="p5"><span class="s1">## Cs<span class="Apple-converted-space">                              </span>1.553576e-02</span></p>
+<p class="p5"><span class="s1">## Ba<span class="Apple-converted-space">                              </span>5.521830e-11</span></p>
+<p class="p5"><span class="s1">## La<span class="Apple-converted-space">                              </span>9.025257e-04</span></p>
+<p class="p5"><span class="s1">## Ce<span class="Apple-converted-space">                              </span>3.104258e-02</span></p>
+<p class="p5"><span class="s1">## Pr<span class="Apple-converted-space">                              </span>1.604783e-12</span></p>
+<p class="p5"><span class="s1">## Nd<span class="Apple-converted-space">                              </span>3.733985e-06</span></p>
+<p class="p5"><span class="s1">## Sm<span class="Apple-converted-space">                              </span>5.602386e-01</span></p>
+<p class="p5"><span class="s1">## Eu<span class="Apple-converted-space">                              </span>7.772458e-01</span></p>
+<p class="p5"><span class="s1">## Gd<span class="Apple-converted-space">                              </span>4.237353e-02</span></p>
+<p class="p5"><span class="s1">## Tb<span class="Apple-converted-space">                              </span>7.033183e-01</span></p>
+<p class="p5"><span class="s1">## Dy<span class="Apple-converted-space">                              </span>3.998818e-02</span></p>
+<p class="p5"><span class="s1">## Ho<span class="Apple-converted-space">                              </span>8.095547e-03</span></p>
+<p class="p5"><span class="s1">## Er<span class="Apple-converted-space">                              </span>3.512060e-03</span></p>
+<p class="p5"><span class="s1">## Tm<span class="Apple-converted-space">                              </span>3.774910e-02</span></p>
+<p class="p5"><span class="s1">## Yb<span class="Apple-converted-space">                              </span>1.006128e-01</span></p>
+<p class="p5"><span class="s1">## Lu<span class="Apple-converted-space">                              </span>2.723351e-03</span></p>
+<p class="p5"><span class="s1">## Hf<span class="Apple-converted-space">                              </span>2.009841e-02</span></p>
+<p class="p5"><span class="s1">## Ta<span class="Apple-converted-space">                              </span>1.641798e-01</span></p>
+<p class="p5"><span class="s1">## W <span class="Apple-converted-space">                              </span>8.788093e-01</span></p>
+<p class="p5"><span class="s1">## Re<span class="Apple-converted-space">                              </span>3.884434e-02</span></p>
+<p class="p5"><span class="s1">## Pt<span class="Apple-converted-space">                              </span>5.060799e-01</span></p>
+<p class="p5"><span class="s1">## Au<span class="Apple-converted-space">                              </span>3.365824e-03</span></p>
+<p class="p5"><span class="s1">## Hg<span class="Apple-converted-space">                              </span>6.567803e-01</span></p>
+<p class="p5"><span class="s1">## Tl<span class="Apple-converted-space">                              </span>1.359840e-08</span></p>
+<p class="p5"><span class="s1">## Pb<span class="Apple-converted-space">                              </span>5.677295e-04</span></p>
+<p class="p5"><span class="s1">## Bi<span class="Apple-converted-space">                              </span>6.608180e-03</span></p>
+<p class="p5"><span class="s1">## V168<span class="Apple-converted-space">                            </span>0.000000e+00</span></p>
+<p class="p4"><span class="s1">summary(lm_for_test)$coefficients</span></p>
+<p class="p5"><span class="s1">## Error in summary(lm_for_test): object 'lm_for_test' not found</span></p>
+<p class="p3"><span class="s1">PCA is done</span></p>
+<p class="p4"><span class="s1">train_pca &lt;- rda(stand_train)</span></p>
+<p class="p4"><span class="s1">head(summary(train_pca)$cont)</span></p>
+<p class="p5"><span class="s1">## $importance</span></p>
+<p class="p5"><span class="s1">## Importance of components:</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC1<span class="Apple-converted-space">      </span>PC2<span class="Apple-converted-space">      </span>PC3<span class="Apple-converted-space">      </span>PC4<span class="Apple-converted-space">      </span>PC5<span class="Apple-converted-space">      </span>PC6</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>949.4354 22.94139 13.96280 11.09149 8.781781 6.357798</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">    </span>0.8657<span class="Apple-converted-space">  </span>0.02092<span class="Apple-converted-space">  </span>0.01273<span class="Apple-converted-space">  </span>0.01011 0.008007 0.005797</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion <span class="Apple-converted-space">  </span>0.8657<span class="Apple-converted-space">  </span>0.88662<span class="Apple-converted-space">  </span>0.89935<span class="Apple-converted-space">  </span>0.90947 0.917474 0.923271</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC7<span class="Apple-converted-space">      </span>PC8<span class="Apple-converted-space">      </span>PC9 <span class="Apple-converted-space">    </span>PC10 <span class="Apple-converted-space">    </span>PC11 <span class="Apple-converted-space">    </span>PC12</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>4.009967 3.905176 3.504423 2.637841 2.274589 2.142030</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.003656 0.003561 0.003195 0.002405 0.002074 0.001953</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.926928 0.930489 0.933684 0.936089 0.938163 0.940116</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC13 <span class="Apple-converted-space">    </span>PC14 <span class="Apple-converted-space">    </span>PC15 <span class="Apple-converted-space">    </span>PC16 <span class="Apple-converted-space">    </span>PC17 <span class="Apple-converted-space">    </span>PC18</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.769583 1.558510 1.511729 1.466310 1.389424 1.358256</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.001614 0.001421 0.001378 0.001337 0.001267 0.001238</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.941730 0.943151 0.944529 0.945866 0.947133 0.948372</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                          </span>PC19 <span class="Apple-converted-space">    </span>PC20 <span class="Apple-converted-space">    </span>PC21 <span class="Apple-converted-space">    </span>PC22 <span class="Apple-converted-space">    </span>PC23 <span class="Apple-converted-space">    </span>PC24</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.30465 1.271012 1.255589 1.175614 1.141414 1.133233</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.00119 0.001159 0.001145 0.001072 0.001041 0.001033</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.94956 0.950720 0.951865 0.952937 0.953978 0.955011</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC25<span class="Apple-converted-space">      </span>PC26<span class="Apple-converted-space">      </span>PC27<span class="Apple-converted-space">      </span>PC28<span class="Apple-converted-space">      </span>PC29</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.105327 1.0949564 1.0700714 1.0633717 1.0618225</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.001008 0.0009984 0.0009757 0.0009696 0.0009682</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.956019 0.9570172 0.9579929 0.9589625 0.9599307</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC30<span class="Apple-converted-space">      </span>PC31<span class="Apple-converted-space">      </span>PC32<span class="Apple-converted-space">      </span>PC33<span class="Apple-converted-space">      </span>PC34</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.0489566 1.0467832 1.0422804 1.0344179 1.0288171</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0009564 0.0009545 0.0009504 0.0009432 0.0009381</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9608871 0.9618416 0.9627920 0.9637352 0.9646732</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC35<span class="Apple-converted-space">      </span>PC36<span class="Apple-converted-space">      </span>PC37<span class="Apple-converted-space">      </span>PC38<span class="Apple-converted-space">      </span>PC39</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.0216386 1.0146126 1.0106838 1.0099349 1.0066622</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0009315 0.0009251 0.0009216 0.0009209 0.0009179</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9656048 0.9665299 0.9674515 0.9683723 0.9692902</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC40 <span class="Apple-converted-space">    </span>PC41<span class="Apple-converted-space">      </span>PC42<span class="Apple-converted-space">      </span>PC43<span class="Apple-converted-space">      </span>PC44</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.0065108 1.004600 1.0031258 1.0022301 1.0013848</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0009177 0.000916 0.0009147 0.0009138 0.0009131</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9702080 0.971124 0.9720386 0.9729525 0.9738655</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC45<span class="Apple-converted-space">      </span>PC46<span class="Apple-converted-space">      </span>PC47 <span class="Apple-converted-space">    </span>PC48<span class="Apple-converted-space">      </span>PC49</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.0010384 1.0000903 0.9996303 0.995862 0.9948560</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0009128 0.0009119 0.0009115 0.000908 0.0009071</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9747783 0.9756902 0.9766017 0.977510 0.9784168</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC50<span class="Apple-converted-space">      </span>PC51<span class="Apple-converted-space">      </span>PC52 <span class="Apple-converted-space">    </span>PC53<span class="Apple-converted-space">      </span>PC54</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.9889840 0.9855899 0.9810963 0.978284 0.9720476</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0009018 0.0008987 0.0008946 0.000892 0.0008863</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9793186 0.9802173 0.9811118 0.982004 0.9828902</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC55<span class="Apple-converted-space">      </span>PC56<span class="Apple-converted-space">      </span>PC57<span class="Apple-converted-space">      </span>PC58<span class="Apple-converted-space">      </span>PC59</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.9678614 0.9594647 0.9515787 0.9251242 0.9050984</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0008825 0.0008748 0.0008677 0.0008435 0.0008253</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9837727 0.9846475 0.9855152 0.9863587 0.9871840</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC60<span class="Apple-converted-space">      </span>PC61<span class="Apple-converted-space">      </span>PC62<span class="Apple-converted-space">      </span>PC63<span class="Apple-converted-space">      </span>PC64</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.8911611 0.8744476 0.8613184 0.8188845 0.8127804</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0008126 0.0007973 0.0007854 0.0007467 0.0007411</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9879966 0.9887939 0.9895792 0.9903259 0.9910670</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC65<span class="Apple-converted-space">      </span>PC66<span class="Apple-converted-space">      </span>PC67<span class="Apple-converted-space">      </span>PC68 <span class="Apple-converted-space">    </span>PC69<span class="Apple-converted-space">      </span>PC70</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.765541 0.7630966 0.6844575 0.6573806 0.586780 0.5805374</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.000698 0.0006958 0.0006241 0.0005994 0.000535 0.0005293</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.991765 0.9924608 0.9930849 0.9936843 0.994219 0.9947487</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC71<span class="Apple-converted-space">      </span>PC72<span class="Apple-converted-space">      </span>PC73<span class="Apple-converted-space">      </span>PC74 <span class="Apple-converted-space">    </span>PC75<span class="Apple-converted-space">      </span>PC76</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.546137 0.4717169 0.4445635 0.4011560 0.377301 0.3149525</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.000498 0.0004301 0.0004054 0.0003658 0.000344 0.0002872</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.995247 0.9956768 0.9960821 0.9964479 0.996792 0.9970791</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC77<span class="Apple-converted-space">      </span>PC78<span class="Apple-converted-space">      </span>PC79<span class="Apple-converted-space">      </span>PC80<span class="Apple-converted-space">      </span>PC81</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.2828276 0.2707773 0.2355149 0.2259864 0.2070630</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0002579 0.0002469 0.0002147 0.0002061 0.0001888</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9973370 0.9975839 0.9977987 0.9980047 0.9981935</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC82<span class="Apple-converted-space">      </span>PC83<span class="Apple-converted-space">      </span>PC84<span class="Apple-converted-space">      </span>PC85<span class="Apple-converted-space">      </span>PC86</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.1796859 0.1674396 0.1464032 0.1399369 0.1149114</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0001638 0.0001527 0.0001335 0.0001276 0.0001048</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9983574 0.9985100 0.9986435 0.9987711 0.9988759</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC87<span class="Apple-converted-space">      </span>PC88<span class="Apple-converted-space">      </span>PC89<span class="Apple-converted-space">      </span>PC90<span class="Apple-converted-space">      </span>PC91</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>0.1115382 1.033e-01 8.600e-02 7.733e-02 7.492e-02</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>0.0001017 9.422e-05 7.841e-05 7.051e-05 6.831e-05</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 0.9989776 9.991e-01 9.992e-01 9.992e-01 9.993e-01</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC92<span class="Apple-converted-space">      </span>PC93<span class="Apple-converted-space">      </span>PC94<span class="Apple-converted-space">      </span>PC95 <span class="Apple-converted-space">    </span>PC96</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>6.750e-02 6.270e-02 5.410e-02 5.338e-02 0.047158</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>6.154e-05 5.717e-05 4.933e-05 4.868e-05 0.000043</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 9.994e-01 9.994e-01 9.995e-01 9.995e-01 0.999549</span></p>
+<p class="p5"><span class="s1">##<span class="Apple-converted-space">                            </span>PC97<span class="Apple-converted-space">      </span>PC98<span class="Apple-converted-space">      </span>PC99 <span class="Apple-converted-space">    </span>PC100 <span class="Apple-converted-space">    </span>PC101</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>4.037e-02 3.885e-02 3.708e-02 3.134e-02 2.947e-02</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>3.681e-05 3.542e-05 3.381e-05 2.858e-05 2.688e-05</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 9.996e-01 9.996e-01 9.997e-01 9.997e-01 9.997e-01</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC102 <span class="Apple-converted-space">    </span>PC103 <span class="Apple-converted-space">    </span>PC104 <span class="Apple-converted-space">    </span>PC105 <span class="Apple-converted-space">    </span>PC106</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>2.685e-02 2.591e-02 2.440e-02 2.300e-02 1.868e-02</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>2.448e-05 2.362e-05 2.225e-05 2.097e-05 1.704e-05</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 9.997e-01 9.998e-01 9.998e-01 9.998e-01 9.998e-01</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC107 <span class="Apple-converted-space">    </span>PC108 <span class="Apple-converted-space">    </span>PC109 <span class="Apple-converted-space">    </span>PC110 <span class="Apple-converted-space">    </span>PC111</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.550e-02 1.498e-02 1.452e-02 1.279e-02 1.179e-02</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>1.413e-05 1.366e-05 1.324e-05 1.166e-05 1.075e-05</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 9.998e-01 9.998e-01 9.999e-01 9.999e-01 9.999e-01</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC112 <span class="Apple-converted-space">    </span>PC113 <span class="Apple-converted-space">    </span>PC114 <span class="Apple-converted-space">    </span>PC115 <span class="Apple-converted-space">    </span>PC116</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.112e-02 1.100e-02 1.039e-02 9.964e-03 8.885e-03</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>1.014e-05 1.003e-05 9.471e-06 9.085e-06 8.101e-06</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 9.999e-01 9.999e-01 9.999e-01 9.999e-01 9.999e-01</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC117 <span class="Apple-converted-space">    </span>PC118 <span class="Apple-converted-space">    </span>PC119 <span class="Apple-converted-space">    </span>PC120 <span class="Apple-converted-space">    </span>PC121</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>8.242e-03 7.014e-03 6.506e-03 5.927e-03 5.904e-03</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>7.515e-06 6.395e-06 5.933e-06 5.404e-06 5.383e-06</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 9.999e-01 9.999e-01 9.999e-01 1.000e+00 1.000e+00</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC122 <span class="Apple-converted-space">    </span>PC123 <span class="Apple-converted-space">    </span>PC124 <span class="Apple-converted-space">    </span>PC125 <span class="Apple-converted-space">    </span>PC126</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>4.983e-03 4.775e-03 4.314e-03 3.706e-03 3.360e-03</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>4.544e-06 4.354e-06 3.934e-06 3.379e-06 3.064e-06</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC127 <span class="Apple-converted-space">    </span>PC128 <span class="Apple-converted-space">    </span>PC129 <span class="Apple-converted-space">    </span>PC130 <span class="Apple-converted-space">    </span>PC131</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>2.931e-03 2.783e-03 2.611e-03 2.103e-03 1.793e-03</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>2.673e-06 2.538e-06 2.381e-06 1.917e-06 1.634e-06</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC132 <span class="Apple-converted-space">    </span>PC133 <span class="Apple-converted-space">    </span>PC134 <span class="Apple-converted-space">    </span>PC135 <span class="Apple-converted-space">    </span>PC136</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.456e-03 1.298e-03 1.175e-03 1.092e-03 8.693e-04</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>1.328e-06 1.184e-06 1.071e-06 9.961e-07 7.926e-07</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC137 <span class="Apple-converted-space">    </span>PC138 <span class="Apple-converted-space">    </span>PC139 <span class="Apple-converted-space">    </span>PC140 <span class="Apple-converted-space">    </span>PC141</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>8.102e-04 7.738e-04 6.768e-04 6.145e-04 5.445e-04</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>7.388e-07 7.055e-07 6.171e-07 5.603e-07 4.965e-07</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC142 <span class="Apple-converted-space">    </span>PC143 <span class="Apple-converted-space">    </span>PC144 <span class="Apple-converted-space">    </span>PC145 <span class="Apple-converted-space">    </span>PC146</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>5.213e-04 3.752e-04 2.679e-04 1.317e-04 1.281e-04</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>4.753e-07 3.421e-07 2.443e-07 1.201e-07 1.168e-07</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00</span></p>
+<p class="p5"><span class="s1">## <span class="Apple-converted-space">                          </span>PC147 <span class="Apple-converted-space">    </span>PC148 <span class="Apple-converted-space">    </span>PC149 <span class="Apple-converted-space">    </span>PC150 <span class="Apple-converted-space">    </span>PC151</span></p>
+<p class="p5"><span class="s1">## Eigenvalue<span class="Apple-converted-space">            </span>1.066e-04 8.240e-05 4.973e-05 2.728e-05 2.062e-05</span></p>
+<p class="p5"><span class="s1">## Proportion Explained<span class="Apple-converted-space">  </span>9.719e-08 7.513e-08 4.535e-08 2.487e-08 1.880e-08</span></p>
+<p class="p5"><span class="s1">## Cumulative Proportion 1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00</span></p>
+</body>
+</html>

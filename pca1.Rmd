@@ -1,0 +1,56 @@
+---
+title: "pca_1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+## R Markdown
+Libraries are installed
+
+```{r}
+library('readr')
+library('vegan')
+```
+Data is loaded
+```{r}
+table_1 = read.csv('/Users/Downloads/train.csv')
+table_2 = read.csv('/Users/Downloads/unique_m.csv')
+
+data = cbind(table_1, table_2)
+data$material = NULL
+```
+Data is separated to tran and test.
+
+```{r}
+train = data[1:7000,]
+test = data[7001:21263,]
+```
+Data is scaled
+```{r}
+stand_train = train[,-which(colnames(train)=="critical_temp")]
+stand_test = test[,-which(colnames(train)=="critical_temp")]
+stand_train = scale(stand_train)
+stand_test = scale(stand_test)
+stand_train = as.data.frame(cbind(stand_train, train$critical_temp))
+stand_train[is.na(stand_train)] = 0
+stand_test = as.data.frame(cbind(stand_test, test$critical_temp))
+```
+Linear model is built
+
+```{r, error = TRUE}
+lm_for_train = lm(train$critical_temp~.,stand_train, na.rm = TRUE)
+lm_for_test = lm(test$critical_temp~.,stand_test)
+summary(lm_for_train)$coefficients
+summary(lm_for_test)$coefficients
+```
+PCA is done
+
+```{r}
+train_pca <- rda(stand_train)
+head(summary(train_pca)$cont)
+```
